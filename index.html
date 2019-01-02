@@ -9,80 +9,82 @@
     <link href="js/css/jspsych.css" rel="stylesheet" type="text/css"></link>
     <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
   </head>
-  <body></body>
+  <body>
+  </body>
   <script>
-    
     
 // #################  create timeline  #################
 var timeline = [];  // The last thing we do is to run it!
 
-// #################  create introduction screen  #################
+
+// #################  The demographics screen  #################
+var check_consent = function(elem) {
+      // get the value of a radio button
+        function getRadioButton(name) {
+            var i, radios = document.getElementsByName(name);
+            for (i = 0; i < radios.length; i = i + 1) {
+                if (radios[i].checked) {
+                    return (radios[i].value);
+                }
+            }
+            return("NA")
+        }
+
+        jsPsych.data.addProperties( {
+	    gender: getRadioButton("gender"),
+        age: document.getElementById("age").value,
+        language: document.getElementById("language").value,
+        country: document.getElementById("country").value,
+        experience: getRadioButton("experience").value,
+        handedness: getRadioButton("handedness").value,
+        mapholding: getRadioButton("mapholding").value,
+        })
+
+        // Now check to ensure that we have valid inforamtion in all fields
+};
+
+        
+// generate a random subject ID with 15 characters
+var subject_id = jsPsych.randomization.randomID(15);
+
+// pick a random condition for the subject at the start of the experiment
+var condition_assignment = jsPsych.randomization.sampleWithoutReplacement(['conditionA', 'conditionB', 'conditionC'], 1)[0];
+
+// record the condition assignment in the jsPsych data
+// this adds a property called 'subject' and a property called 'condition' to every trial
+jsPsych.data.addProperties({
+  subject: subject_id,
+  condition: condition_assignment
+
+
+    });
 
     var introduction = {
       type:'external-html',
-      url: "introduction_page.html",
-      cont_btn: "next_b",
+      url: "demographics_page.html",
+      cont_btn: "demographics_done",
+      check_fn: check_consent
       };
+
+
+var debrief = {
+          type: "html-keyboard-response",
+          stimulus: function() {
+            var first_one = jsPsych.data.get().filter({id: "subject_id"});
+            return "<p style='font-size:25px'>Age<strong>" + first_one + "ms</strong>.</p>";
+          }
+        };
+
     timeline.push(introduction);  // Into the timeline
+    timeline.push(debrief);  // Into the timeline
 
-// #################  create consent screen  #################
-
-// Function that checks if a subject has given consent to participate.
-// This stops execution of the rest of the timeline until the agreement checkbox is checked
-var check_consent = function(elem) {
-  if ($('#consent_checkbox').is(':checked')) {
-    return true;
-  }
-  else {
-    alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
-    return false;
-  }
-  return false;
-};
- 
-// declare the block.
-var consent = {
-  type:'external-html',
-  url: "consent_page.html",
-  cont_btn: "start",
-  check_fn: check_consent
-};
-timeline.push(consent);  // Into the timeline
-
-// #################  create demographics screen  #################
-
-// #################  create content screens  #################
-
-    var instructions = 
-    {
-    type: 'instructions',
-    pages: [
-        '<img src="img/intro1.jpg"></img>',
-        '<img src="img/intro2.jpg"></img>',
-        '<img src="img/intro3.jpg"></img>',
-        '<img src="img/intro4.jpg"></img>',
-        '<img src="img/intro5.jpg"></img>'
-    ],
-    show_clickable_nav: true
-    };
-    timeline.push(instructions);
-
-    // #################  create debrief screen  #################
-    var debrief = 
-    {
-        type: 'html-keyboard-response',
-        stimulus: 'just about done',
-        choices: [' '],
-        prompt: "<p>Press the space bar to end the experiment</p>"
-    };
-    timeline.push(debrief);
-
-     // #################  create timeline  #################
-    jsPsych.init
-    ({
-        timeline: timeline  // Oooh yes, now we run the time line
+ // #################  run timeline  #################
+    jsPsych.init ({
+        timeline: timeline,  // Oooh yes, now we run the time line
+        on_finish: function() {
+            jsPsych.data.displayData();
+        }
     });
-
 
 
    </script>
