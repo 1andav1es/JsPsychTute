@@ -2,12 +2,12 @@
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Orienteering</title>
-    <script src="js/jspsych.js"></script>
-    <script src="js/plugins/jspsych-html-keyboard-response.js"></script>
-    <script src="js/plugins/jspsych-external-html.js"></script>
-    <script src="js/plugins/jspsych-instructions.js"></script>
-    <link href="js/css/jspsych.css" rel="stylesheet" type="text/css"></link>
-    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/jspsych.js"></script>
+    <script src="./js/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="./js/plugins/jspsych-external-html.js"></script>
+    <script src="./js/plugins/jspsych-instructions.js"></script>
+    <link href="./js/css/jspsych.css" rel="stylesheet" type="text/css"></link>
   </head>
   <body>
   </body>
@@ -27,7 +27,7 @@ var check_consent = function(elem) {
                     return (radios[i].value);
                 }
             }
-            return("NA")
+          
         }
 
         jsPsych.data.addProperties( {
@@ -40,7 +40,10 @@ var check_consent = function(elem) {
         mapholding: getRadioButton("mapholding").value,
         })
 
-        // Now check to ensure that we have valid inforamtion in all fields
+        // Effectively checks to ensure that we have valid inforamtion in all fields
+        // won't let you move forward unless all boxes have an answer
+
+    return true
 };
 
         
