@@ -61,29 +61,18 @@ jsPsych.data.addProperties({
 
     var introduction = {
       type:'external-html',
-      url: "demographics_page.html",
+      url: "./doc/demographics_page.html",
       cont_btn: "demographics_done",
       check_fn: check_consent
       };
 
 
-var debrief = {
-          type: "html-keyboard-response",
-          stimulus: function() {
-            var first_one = jsPsych.data.get().filter({id: "subject_id"});
-            return "<p style='font-size:25px'>Age<strong>" + first_one + "ms</strong>.</p>";
-          }
-        };
 
-    timeline.push(introduction);  // Into the timeline
-    timeline.push(debrief);  // Into the timeline
+     
 
  // #################  run timeline  #################
     jsPsych.init ({
-        timeline: timeline,  // Oooh yes, now we run the time line
-        on_finish: function() {
-            jsPsych.data.displayData();
-        }
+        timeline: [introduction]  // Oooh yes, now we run the time line
     });
 
 
