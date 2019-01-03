@@ -19,7 +19,7 @@ var timeline = [];  // The last thing we do is to run it!
 
 // #################  The demographics screen  #################
 var check_consent = function(elem) {
-      // get the value of a radio button
+      // get the values of radio buttons on the external form
         function getRadioButton(name) {
             var i, radios = document.getElementsByName(name);
             for (i = 0; i < radios.length; i = i + 1) {
@@ -36,13 +36,15 @@ var check_consent = function(elem) {
             language: document.getElementById("language").value,
 	        gender: getRadioButton("gender"),
             country: document.getElementById("country").value
+            mapholding: getRadioButton("mapholding").value,
             })
 
         
         // Effectively checks to ensure that we have valid inforamtion in all fields
         // won't let you move forward unless all boxes have an answer
 
-    return true
+    return true // Returning true moves us on the the next item in the timeline
+                // returning false would prevent progress
 };
 
         
@@ -63,28 +65,31 @@ jsPsych.data.addProperties({
 
     var introduction = {
       type:'external-html',
-      url: "./doc/demographics_page.html",
-      cont_btn: "demographics_done",
+      url: "./doc/demographics_page.html", // Declare path in app.yaml !
+      cont_btn: "demographics_done", // Name of button on called form
       check_fn: check_consent
       };
 
-      /* save and finish */
-      function endExperiment(dataset,callback) {
-          $.post('submit',{"content": dataset});
-          setTimeout(callback,1000)
-      }
 
 
- // #################  run timeline  #################
+ // #################  run the timeline  #################
+
     jsPsych.init ({
-        timeline: [introduction],  // Oooh yes, now we run the time line
+        timeline: [introduction],  // Oooh yes, now we execute the time line for the experiment
         on_finish: function() { endExperiment( 
             jsPsych.data.get().csv(), 
             function() {document.write('All done!<br>its possible.</br>')}
                 )
             }
         });
-// endExperiment(console.log(jsPsych.data.get().csv()))
+
+    // The endExperiment function called on completion of the timeline
+
+    function endExperiment(dataset,callback) {
+        $.post('submit',{"content": dataset});
+        setTimeout(callback,1000)
+    }  
+    // Posts the dataset into a location where it can be found by the app engine
 
    </script>
 </html>

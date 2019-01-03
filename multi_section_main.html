@@ -13,46 +13,48 @@
   <script>
     
     
-// #################  create timeline  #################
-var timeline = [];  // The last thing we do is to run it!
+// #################  create timelines & other variables  #################
+
+var timeline = [];  // Create the variable but not run it!
+var is_beginner
 
 // #################  create introduction screen  #################
 
     var introduction = {
       type:'external-html',
-      url: "./doc/introduction_page.html",
+      url: "./doc/introduction_page.html",  // relative path (add to app.yaml!)
       cont_btn: "next_b",
       };
     timeline.push(introduction);  // Into the timeline
 
 // #################  create consent screen  #################
 
-// Function that checks if a subject has given consent to participate.
-// This stops execution of the rest of the timeline until the agreement checkbox is checked
-var check_consent = function(elem) {
-  if ($('#consent_checkbox').is(':checked')) {
-    return true;
-  }
-  else {
-    alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
-    return false;
-  }
-  return false;
-};
+    // Function that checks if a subject has given consent to participate.
+    // This stops execution of the rest of the timeline until the agreement checkbox is checked
+    var check_consent = function(elem) {
+        if ($('#consent_checkbox').is(':checked')) {
+            return true;  // Returning true lets us keep going
+        }
+        else {
+            alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
+            return false;  // False keeps us on the form
+        }
+        return false;
+    };
  
-// declare the block.
-var consent = {
-  type:'external-html',
-  url: "./doc/consent_page.html",
-  cont_btn: "start",
-  check_fn: check_consent
-};
-timeline.push(consent);  // Into the timeline
+    // declare the block.
+    var consent = {
+        type:'external-html',
+        url: "./doc/consent_page.html",  // relative path (add to app.yaml!)
+        cont_btn: "start",
+        check_fn: check_consent  // Run the check_consent function
+    };
+    timeline.push(consent);  // Into the timeline
 
 // #################  create demographics screen  #################
 
-var check_consent = function(elem) {
-      // get the value of a radio button
+    var check_consent = function(elem) {
+        // get the value of a radio button
         function getRadioButton(name) {
             var i, radios = document.getElementsByName(name);
             for (i = 0; i < radios.length; i = i + 1) {
@@ -66,55 +68,61 @@ var check_consent = function(elem) {
         age: document.getElementById("age").value,
         language: document.getElementById("language").value,
         country: document.getElementById("country").value,
-        experience: getRadioButton("experience").value,
-        handedness: getRadioButton("handedness").value,
-        mapholding: getRadioButton("mapholding").value,
+        experience: getRadioButton("experience"),
+        handedness: getRadioButton("handedness"),
+        mapholding: getRadioButton("mapholding")
         })
-
+        is_beginner = getRadioButton("experience")  // for later!
         // Effectively checks to ensure that we have valid inforamtion in all radio buttons
         // won't let you move forward unless all radio's have been answered
-
-    return true
-};
-
-        
-// generate a random subject ID with 15 characters
-var subject_id = jsPsych.randomization.randomID(15);
-
-// pick a random condition for the subject at the start of the experiment
-var condition_assignment = jsPsych.randomization.sampleWithoutReplacement(['conditionA', 'conditionB', 'conditionC'], 1)[0];
-
-// record the condition assignment in the jsPsych data
-// this adds a property called 'subject' and a property called 'condition' to every trial
-jsPsych.data.addProperties({
-  subject: subject_id,
-  condition: condition_assignment
-
-
-    });
+    
+        return true // Returning true moves us on the the next item in the timeline
+                    // returning false would prevent progress
+    };
 
     var demographics = {
-      type:'external-html',
-      url: "./doc/demographics_page.html",
-      cont_btn: "demographics_done",
-      check_fn: check_consent
-      };
-
+        type:'external-html',
+        url: "./doc/demographics_page.html",
+        cont_btn: "demographics_done",
+        check_fn: check_consent
+        };
     timeline.push(demographics);
 
 
-// #################  create content screens  #################
+// #################  create training screens  #################
+
+    var if_trial = {  // Only if beginner
+        type: 'instructions',
+        pages: [
+            '<img src="img/intro1.jpg"></img>',
+            '<img src="img/intro2.jpg"></img>',
+            '<img src="img/intro3.jpg"></img>',
+            '<img src="img/intro4.jpg"></img>',
+            '<img src="img/intro5.jpg"></img>'],
+        show_clickable_nav: true
+    }
+
+var if_node = {
+    timeline: [if_trial],
+    conditional_function: function(){  // Conditional function prevents page displaying if false
+        // get the data from the previous trial, and decide if we will see it
+        if(is_beginner == "never"){
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+            timeline.push(if_node);
+
+// #################  create Briefing screens  #################
 
     var instructions = 
     {
     type: 'instructions',
     pages: [
-        '<img src="img/intro1.jpg"></img>',
-        '<img src="img/intro2.jpg"></img>',
-        '<img src="img/intro3.jpg"></img>',
-        '<img src="img/intro4.jpg"></img>',
-        '<img src="img/intro5.jpg"></img>'
-    ],
+        '<img src="img/briefing1.jpg"></img>',
+        '<img src="img/briefing2.jpg"></img>'],
     show_clickable_nav: true
     };
     timeline.push(instructions);
@@ -129,11 +137,45 @@ jsPsych.data.addProperties({
     };
     timeline.push(debrief);
 
-     // #################  create timeline  #################
-    jsPsych.init
-    ({
-        timeline: timeline  // Oooh yes, now we run the time line
-    });
+ // #################  run the second timeline  #################
+
+    jsPsych.init ({
+        timeline: timeline,  // Oooh yes, now we execute the time line for the experiment
+        on_finish: function() { endExperiment( 
+            jsPsych.data.get().csv(), 
+            function() {document.write('All done!<br>its possible.</br>')}
+                )
+            }
+        });
+
+    // The endExperiment function called on completion of the timeline
+
+    function endExperiment(dataset,callback) {
+        $.post('submit',{"content": dataset});
+        setTimeout(callback,1000)
+    }  
+    // Posts the dataset into a location where it can be found by the app engine
+
+
+
+        
+//// generate a random subject ID with 15 characters
+//var subject_id = jsPsych.randomization.randomID(15);
+
+//// pick a random condition for the subject at the start of the experiment
+//var condition_assignment = jsPsych.randomization.sampleWithoutReplacement(['conditionA', 'conditionB', 'conditionC'], 1)[0];
+
+
+//// record the condition assignment in the jsPsych data
+//// this adds a property called 'subject' and a property called 'condition' to every trial
+//    jsPsych.data.addProperties({
+//    subject: subject_id,
+//    condition: condition_assignment
+//    });
+
+
+
+
 
 
 
