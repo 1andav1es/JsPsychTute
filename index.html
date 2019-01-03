@@ -27,19 +27,18 @@ var check_consent = function(elem) {
                     return (radios[i].value);
                 }
             }
-          
         }
+        
+        jsPsych.data.addProperties({
+            age: document.getElementById("age").value,
+            experience: getRadioButton("experience"),
+            handedness: getRadioButton("handedness"),
+            language: document.getElementById("language").value,
+	        gender: getRadioButton("gender"),
+            country: document.getElementById("country").value
+            })
 
-        jsPsych.data.addProperties( {
-	    gender: getRadioButton("gender"),
-        age: document.getElementById("age").value,
-        language: document.getElementById("language").value,
-        country: document.getElementById("country").value,
-        experience: getRadioButton("experience").value,
-        handedness: getRadioButton("handedness").value,
-        mapholding: getRadioButton("mapholding").value,
-        })
-
+        
         // Effectively checks to ensure that we have valid inforamtion in all fields
         // won't let you move forward unless all boxes have an answer
 
@@ -69,15 +68,23 @@ jsPsych.data.addProperties({
       check_fn: check_consent
       };
 
+      /* save and finish */
+      function endExperiment(dataset,callback) {
+          $.post('submit',{"content": dataset});
+          setTimeout(callback,1000)
+      }
 
-
-     
 
  // #################  run timeline  #################
     jsPsych.init ({
-        timeline: [introduction]  // Oooh yes, now we run the time line
-    });
-
+        timeline: [introduction],  // Oooh yes, now we run the time line
+        on_finish: function() { endExperiment( 
+            jsPsych.data.get().csv(), 
+            function() {document.write('All done!<br>its possible.</br>')}
+                )
+            }
+        });
+// endExperiment(console.log(jsPsych.data.get().csv()))
 
    </script>
 </html>
