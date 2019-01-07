@@ -96,6 +96,7 @@ class LoadResults(webapp2.RequestHandler):
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/submit', WriteDataObject),
-# Uncomment the following line to allow download of results    
     ('/info', LoadResults)    
+# Uncomment the following line to allow purging of results    
+#    ('/databegone', UnknownCommand)
 ], debug=True)

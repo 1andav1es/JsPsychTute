@@ -107,7 +107,10 @@ var is_beginner
             '<img src="img/intro2.jpg"></img>',
             '<img src="img/intro3.jpg"></img>',
             '<img src="img/intro4.jpg"></img>',
-            '<img src="img/intro5.jpg"></img>'],
+            '<img src="img/intro5.jpg"></img>',
+            '<img src="img/intro6.jpg"></img>',
+            '<img src="img/intro7.jpg"></img>',
+            '<img src="img/intro8.jpg"></img>'],
         show_clickable_nav: true
     }
 
@@ -115,7 +118,7 @@ var is_beginner
         timeline: [if_trial],
         conditional_function: function(){  // Conditional function prevents page displaying if false
             // get the data from the previous trial, and decide if we will see it
-            if(is_beginner == "never"){
+            if((is_beginner == "never")|(is_beginner == "some"){
                 return true;
             } else {
                 return false;
