@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Orienteering</title>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/jspsych.js"></script>
+    <script src="./js/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="./js/plugins/jspsych-html-button-response.js"></script>
+    <script src="./js/plugins/jspsych-survey-multi-choice.js"></script>
+    <script src="./js/plugins/jspsych-external-html.js"></script>
+    <script src="./js/plugins/jspsych-instructions.js"></script>
+    <script src="./js/plugins/jspsych-image-keyboard-response.js"></script>
+    <link href="./js/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+  </head>
+  <body></body>
+  <script>
+    
+    var timeline = [];
+
+// #################  a banner screen that shows briefly  #################
+
+    var introduction = {
+        type: 'image-keyboard-response',
+        stimulus: 'img/intro0.jpg',
+        trial_duration: 4000,
+        choices: jsPsych.NO_KEYS
+    };
+    timeline.push(introduction);
+ 
+// #################  Some explanation  #################
+
+var introduction2 = {
+      type:'external-html',
+      url: "./doc/site_down_page.html"
+      };
+    timeline.push(introduction2);  // Into the timeline
+
+        jsPsych.init ({
+        timeline: timeline
+    });
+
+
+   </script>
+</html>

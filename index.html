@@ -5,6 +5,8 @@
     <script src="./js/jquery.min.js"></script>
     <script src="./js/jspsych.js"></script>
     <script src="./js/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="./js/plugins/jspsych-html-button-response.js"></script>
+    <script src="./js/plugins/jspsych-survey-multi-choice.js"></script>
     <script src="./js/plugins/jspsych-external-html.js"></script>
     <script src="./js/plugins/jspsych-instructions.js"></script>
     <script src="./js/plugins/jspsych-image-keyboard-response.js"></script>
@@ -102,7 +104,7 @@ var is_beginner
 
 // #################  create training screens  #################
 
-    var if_trial = {  // This block is reused later
+    var map_reading = {  // The user can scroll back and forwards in this list
         type: 'instructions',
         pages: [
             '<img src="img/intro2.jpg"></img>',
@@ -116,7 +118,7 @@ var is_beginner
     }
     // Here we only show the introduction stuff if they are a beginner or have 'some experience'
     var if_node = {
-        timeline: [if_trial],
+        timeline: [map_reading],
         conditional_function: function(){  // Conditional function prevents page displaying if false
             // get the data from the previous trial, and decide if we will see it
             if((is_beginner == "never")|(is_beginner == "some")){
@@ -126,8 +128,59 @@ var is_beginner
             }
         }
     }
-            timeline.push(if_node);
 
+// #################  The test questions  #################
+
+var options_area = ["I can run / walk on this", "Its uncrossable"];
+var options_object = ["I can cross this", "I have to go around"];
+var instructioncorrect = false;
+
+var instruction_check = {
+        type: "survey-multi-choice",
+        preamble: ["<p align='center'><b>Check your knowledge before you begin the experiment!</b></p><p>Take care answering, you need to get these questions correct before you can proceed to the experiment</p>"],
+        questions: [{prompt: "<b>Q1</b>: Can you cross an area marked like this?    <img src=./img/symBLD.jpg>", options: options_area},
+                    {prompt: "<b>Q2</b>: Can you cross over one of these?    <img src=./img/symWAP.jpg>", options: options_object},
+                    {prompt: "<b>Q3</b>: Is an area marked like this crossable?    <img src=./img/symGRS.jpg>", options: options_area},
+                    {prompt: "<b>Q4</b>: Is an area marked like this crossable?    <img src=./img/symOOB.jpg>", options: options_area},
+                    {prompt: "<b>Q5</b>: Can you cross over one of these?    <img src=./img/symFEP.jpg>", options: options_object},
+                    {prompt: "<b>Q6</b>: Is an area marked like this crossable?    <img src=./img/symCAN.jpg>", options: options_area},
+                    {prompt: "<b>Q7</b>: Can you cross over one of these?    <img src=./img/symWAI.jpg>", options: options_object},
+                    {prompt: "<b>Q8</b>: Is an area marked like this crossable?    <img src=./img/symTRE.jpg>", options: options_area},
+                    {prompt: "<b>Q9</b>: Can you go along one of these?    <img src=./img/symSTA.jpg>", options: options_area},
+                    {prompt: "<b>Q10</b>: Is an area marked like this crossable?    <img src=./img/symCON.jpg>", options: options_area},
+                    {prompt: "<b>Q11</b>: Can you cross over one of these?    <img src=./img/symFEI.jpg>", options: options_object},
+                    {prompt: "<b>Q12</b>: Is an area marked like this crossable?    <img src=./img/symPVE.jpg>", options: options_area},
+                    {prompt: "<b>Q13</b>: Is an area marked like this crossable?    <img src=./img/symGDN.jpg>", options: options_area}],
+        on_finish: function(data) {
+            console.log(data.responses);  // comment out after debugging (use to copy correct response string into line below)
+            if( data.responses == '{"Q0":"Its uncrossable","Q1":"I can cross this","Q2":"I can run / walk on this","Q3":"Its uncrossable","Q4":"I can cross this","Q5":"I can run / walk on this","Q6":"I have to go around","Q7":"I can run / walk on this","Q8":"I can run / walk on this","Q9":"Its uncrossable","Q10":"I have to go around","Q11":"I can run / walk on this","Q12":"Its uncrossable"}') {
+                instructioncorrect = true;  // questions answered correctly
+            }else{
+              instructioncorrect = false;  // some were wrong
+              is_beginner = "some"  // Here we flip the visibility of the map reading instuction section, so an elete who makes a mistake has to read everything and do the questions again!
+            };   
+        }
+    };          
+
+      var splash_screen = {
+          type: 'html-button-response',
+        stimulus: '<p>Some of your answers were incorrect</p>',
+        choices: ['Click here to review the introduction']
+      };
+      var conditional_instruction = {
+          timeline: [splash_screen],
+          conditional_function: function(data) {
+              return !instructioncorrect // skip if correct
+          }
+      };
+      var conditional_splash = {  // This command adds the training, questionare, and splash screen into a timeline loop
+          timeline: [if_node, instruction_check, conditional_instruction],
+          loop_function: function(data) {
+             return !instructioncorrect // Keep looping until correct
+            }
+      };
+    timeline.push(conditional_splash);   
+ 
 // #################  create Briefing screens  #################
 
     var instructions = {
@@ -259,6 +312,13 @@ var is_beginner
         response_ends_trial: true
     };
     timeline.push(CWdemo);
+    introduction = {
+        type: 'image-keyboard-response',
+        stimulus: 'img/intro1.jpg',
+        trial_duration: 1000,
+        choices: jsPsych.NO_KEYS
+    };
+    timeline.push(CWdemo);
 
 
 // Fixation
@@ -296,13 +356,13 @@ var is_beginner
     var debrief = 
     {
         type: 'html-keyboard-response',
-        stimulus: 'All done.  Thank you for your participation.  <br>Nearly done.</br>',
+        stimulus: 'All done.  Thank you for your participation.',
         choices: [' '],
         prompt: "<p>Pressing the space bar will save the data.</p>"
     };
     timeline.push(debrief);
 
- // #################  run the second timeline  #################
+ // #################  run the timeline  #################
 
     jsPsych.init ({
         timeline: timeline,  // Oooh yes, now we execute the time line for the experiment
