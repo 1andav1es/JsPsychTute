@@ -71,6 +71,7 @@ var is_beginner
         country: document.getElementById("country").value,
         experience: getRadioButton("experience"),
         handedness: getRadioButton("handedness"),
+        handedness: getRadioButton("colourblind"),
         mapholding: getRadioButton("mapholding")
         })
         is_beginner = getRadioButton("experience")  // for later!
@@ -101,7 +102,7 @@ var is_beginner
 
 // #################  create training screens  #################
 
-    var if_trial = {  // Only if beginner
+    var if_trial = {  // This block is reused later
         type: 'instructions',
         pages: [
             '<img src="img/intro2.jpg"></img>',
@@ -113,12 +114,12 @@ var is_beginner
             '<img src="img/intro8.jpg"></img>'],
         show_clickable_nav: true
     }
-
+    // Here we only show the introduction stuff if they are a beginner or have 'some experience'
     var if_node = {
         timeline: [if_trial],
         conditional_function: function(){  // Conditional function prevents page displaying if false
             // get the data from the previous trial, and decide if we will see it
-            if((is_beginner == "never")|(is_beginner == "some"){
+            if((is_beginner == "never")|(is_beginner == "some")){
                 return true;
             } else {
                 return false;
@@ -175,6 +176,122 @@ var is_beginner
     };
     timeline.push(CWdemo);
 
+// @@@@@@@@@@@@@@@@ boilerplate Can We? test @@@@@@@@@@@@@@@@
+// @@@@@@@@@@@@@@@@                          @@@@@@@@@@@@@@@@
+
+
+// Fixation
+    var CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-02-y-start.jpg',
+        trial_duration: 1000,
+        choices: jsPsych.NO_KEYS
+    };
+    timeline.push(CWdemo);
+// Map
+    CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-02-y-map.jpg',
+        trial_duration: 500,
+        choices: jsPsych.NO_KEYS
+    };
+    timeline.push(CWdemo);
+// Picture
+    CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-02-y-pic.jpg',
+        choices: ['Y', 'N'],
+        prompt: "<p>If you can get to the control, press 'Y'. If you can't, press 'N'",
+        response_ends_trial: true
+    };
+    timeline.push(CWdemo);
+
+
+// Fixation
+    var CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-09-y-start.jpg',
+        trial_duration: 1000,
+        choices: jsPsych.NO_KEYS
+    };
+    timeline.push(CWdemo);
+// Map
+    CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-09-y-map.jpg',
+        trial_duration: 500,
+        choices: jsPsych.NO_KEYS
+    };
+    timeline.push(CWdemo);
+// Picture
+    CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-09-y-pic.jpg',
+        choices: ['Y', 'N'],
+        prompt: "<p>If you can get to the control, press 'Y'. If you can't, press 'N'",
+        response_ends_trial: true
+    };
+    timeline.push(CWdemo);
+
+
+// Fixation
+    var CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-11-n-start.jpg',
+        trial_duration: 1000,
+        choices: jsPsych.NO_KEYS
+    };
+    timeline.push(CWdemo);
+// Map
+    CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-11-n-map.jpg',
+        trial_duration: 500,
+        choices: jsPsych.NO_KEYS
+    };
+    timeline.push(CWdemo);
+// Picture
+    CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-11-n-pic.jpg',
+        choices: ['Y', 'N'],
+        prompt: "<p>If you can get to the control, press 'Y'. If you can't, press 'N'",
+        response_ends_trial: true
+    };
+    timeline.push(CWdemo);
+
+
+// Fixation
+    var CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-12-n-start.jpg',
+        trial_duration: 1000,
+        choices: jsPsych.NO_KEYS
+    };
+    timeline.push(CWdemo);
+// Map
+    CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-12-n-map.jpg',
+        trial_duration: 500,
+        choices: jsPsych.NO_KEYS
+    };
+    timeline.push(CWdemo);
+// Picture
+    CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/CW-12-n-pic.jpg',
+        choices: ['Y', 'N'],
+        prompt: "<p>If you can get to the control, press 'Y'. If you can't, press 'N'",
+        response_ends_trial: true
+    };
+    timeline.push(CWdemo);
+
+
+// @@@@@@@@@@@@@@@@                          @@@@@@@@@@@@@@@@
+// @@@@@@@@@@@@@@@@     end boilerplate      @@@@@@@@@@@@@@@@
+
+
 // #################  create debrief screen  #################
     var debrief = 
     {
@@ -213,13 +330,28 @@ var is_beginner
 		  './img/intro3.jpg',
 		  './img/intro4.jpg',
 		  './img/intro5.jpg',
+		  './img/intro6.jpg',
+		  './img/intro7.jpg',
+		  './img/intro8.jpg',
 		  './img/briefing1.jpg',
 		  './img/briefing2.jpg',
 		  './img/briefing3.jpg',
 		  './img/briefing4.jpg',
-		  './img/CW-1-y-start.jpg',
-		  './img/CW-1-y-map.jpg',
-		  './img/CW-1-y-pic.jpg'
+		  './img/CW-01-y-start.jpg',
+		  './img/CW-01-y-map.jpg',
+		  './img/CW-01-y-pic.jpg',
+		  './img/CW-02-y-start.jpg',
+		  './img/CW-02-y-map.jpg',
+		  './img/CW-02-y-pic.jpg',
+		  './img/CW-09-y-start.jpg',
+		  './img/CW-09-y-map.jpg',
+		  './img/CW-09-y-pic.jpg',
+		  './img/CW-11-n-start.jpg',
+		  './img/CW-11-n-map.jpg',
+		  './img/CW-11-n-pic.jpg',
+		  './img/CW-12-n-start.jpg',
+		  './img/CW-12-n-map.jpg',
+		  './img/CW-12-n-pic.jpg'
         ];
 
         
@@ -228,8 +360,6 @@ var is_beginner
 
 //// pick a random condition for the subject at the start of the experiment
 //var condition_assignment = jsPsych.randomization.sampleWithoutReplacement(['conditionA', 'conditionB', 'conditionC'], 1)[0];
-
-
 //// record the condition assignment in the jsPsych data
 //// this adds a property called 'subject' and a property called 'condition' to every trial
 //    jsPsych.data.addProperties({

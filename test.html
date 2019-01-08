@@ -2,27 +2,61 @@
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Orienteering</title>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/jspsych.js"></script>
+    <script src="./js/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="./js/plugins/jspsych-survey-multi-choice.js"></script>
+    <script src="./js/plugins/jspsych-external-html.js"></script>
+    <script src="./js/plugins/jspsych-instructions.js"></script>
+    <script src="./js/plugins/jspsych-image-keyboard-response.js"></script>
+    <link href="./js/css/jspsych.css" rel="stylesheet" type="text/css"></link>
   </head>
   <body></body>
-  	<input type="file" id="files" name="files[]" multiple />
-	<output id="list"></output>
   <script>
+    
+    var timeline = [];
+    var responsecorrect = false;
 
-  function handleFileSelect(evt) {
-    var files = evt.target.files; // FileList object
+// #################  a banner screen that shows briefly  #################
 
-    // files is a FileList of File objects. List some properties.
-    var output = [];
-    for (var i = 0, f; f = files[i]; i++) {
-      output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
-                  f.size, ' bytes, last modified: ',
-                  f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
-                  '</li>');
-    }
-    document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
-  }
+    introduction = {
+        type: 'image-keyboard-response',
+        stimulus: 'img/intro1.jpg',
+        trial_duration: 1000,
+        choices: jsPsych.NO_KEYS
+    };
+    timeline.push(introduction);
 
-  document.getElementById('files').addEventListener('change', handleFileSelect, false);
-</script>
-</script>
+// #################  The test questions  #################
+
+var options_area = ["I can run / walk on this", "Its uncrossable"];
+var options_object = ["I can cross this", "I have to go around"];
+
+
+var instruction_check = {
+        type: "survey-multi-choice",
+        preamble: ["<p align='center'><b>Check your knowledge before you begin!</b></p>"],
+        questions: [{prompt: "<b>Question 1</b>: Can you cross an area marked in this colour?    <img src=./img/GreenOB.jpg>", options: options_area},
+            {prompt: "<b>Question 2</b>: Can you cross over one of these?    <img src=./img/okXfence.jpg>", options: options_object},
+            {prompt: "<b>Question 3</b>: Is an area marked like this crossable?    <img src=./img/OBpurple.jpg>", options: options_area}],
+        on_finish: function(data) {
+            console.log(data.responses);
+            if( data.responses == '{"Q0":"Its uncrossable","Q1":"I can cross this","Q2":"Its uncrossable"}') {
+                return false;
+            }else{
+                return true;
+            };
+                
+        }
+};          
+    timeline.push(instruction_check);   
+
+ // #################  run the timeline  #################
+
+    jsPsych.init ({
+        timeline: timeline
+    });
+
+
+   </script>
 </html>
