@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <script src="./js/Cookies.src.js"></script>
+<body>
+<h2>My Software:</h2>
+
+<button type="button" onclick="DoCookie()">
+Set a cookie</button>
+
+<p id="demo"></p>
+
+<button type="button" onclick="GetCookie()">
+Get what we just set</button>
+
+<p id="demo2"></p>
+
+
+<!-- location marker above for stuff to appear on screen-->
+
+<script>
+var Hash_is = "27z60LAU85z8dy4"
+function DoCookie() {
+// create a cookie that expires after ~ a day
+Cookies.set('hash', Hash_is, {expiry : 100000});
+document.getElementById("demo").innerHTML = "Cookie set<br>";
+}
+
+function GetCookie() {
+var answer =
+Cookies.get('hash');
+document.getElementById("demo2").innerHTML = answer;
+}
+
+
+</script>
+
+</body>
+</html>

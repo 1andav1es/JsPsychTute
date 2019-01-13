@@ -19,7 +19,8 @@
 // #################  create timelines & other variables  #################
 
 var timeline = [];  // Create the variable but not run it!
-var is_beginner
+var is_beginner;
+var demographic_information;
 
 // #################  create introduction screen  #################
 
@@ -66,16 +67,15 @@ var is_beginner
                 }
             }
         }
-        jsPsych.data.addProperties({
-	    gender: getRadioButton("gender"),
-        age: document.getElementById("age").value,
-        language: document.getElementById("language").value,
-        country: document.getElementById("country").value,
-        experience: getRadioButton("experience"),
-        handedness: getRadioButton("handedness"),
-        handedness: getRadioButton("colourblind"),
-        mapholding: getRadioButton("mapholding")
-        })
+	    demographic_information = [
+        ("gender:" + getRadioButton("gender")),
+        ("age:" + document.getElementById("age").value),
+        ("language:" + document.getElementById("language").value),
+        ("country:" + document.getElementById("country").value),
+        ("experience:" + getRadioButton("experience")),
+        ("handedness:" + getRadioButton("handedness")),
+        ("handedness:" + getRadioButton("colourblind")),
+        ("mapholding:" + getRadioButton("mapholding"))]
         is_beginner = getRadioButton("experience")  // for later!
         // Effectively checks to ensure that we have valid inforamtion in all radio buttons
         // won't let you move forward unless all radio's have been answered
@@ -91,6 +91,7 @@ var is_beginner
         check_fn: check_consent
         };
     timeline.push(demographics);
+    jsPsych.data.addProperties({demographic_information});
 
 // #################  a banner screen that shows briefly  #################
 
