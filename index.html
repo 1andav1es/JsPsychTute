@@ -4,6 +4,7 @@
     <title>Orienteering</title>
     <script src="./js/jquery.min.js"></script>
     <script src="./js/jspsych.js"></script>
+    <script src="./js/Cookies.src.js"></script>
     <script src="./js/plugins/jspsych-html-keyboard-response.js"></script>
     <script src="./js/plugins/jspsych-html-button-response.js"></script>
     <script src="./js/plugins/jspsych-survey-multi-choice.js"></script>
@@ -12,88 +13,244 @@
     <script src="./js/plugins/jspsych-image-keyboard-response.js"></script>
     <link href="./js/css/jspsych.css" rel="stylesheet" type="text/css"></link>
   </head>
-  <body></body>
-  <script>
-    
+  <body>
+
+    <!-- #################  introduction screen  #################-->
+
+    <div id="introduction">
+      <div class="start" style=
+      "text-align:left; border:0px solid; padding:10px; width:800px; float:right; font-size:90%">
+      <p align="center"><b>"Reading Sprint Maps"</b></p><br />
+        This is a short psychological study investigating how people read sprint
+        orienteering maps. It involves the following steps:<br />
+  
+        <ol>
+          <li>We ask for your consent.</li>
+  
+          <li>We ask for demographic information.</li>
+  
+          <li>If you are new to orienteering we give you some information on reading sprint 
+          orienteering maps.</li>
+  
+          <li>We then check to ensure that you understand the map symbols and if you don't, 
+          you get another opertunity to look through the introductory information.</li>
+  
+          <li>The study then explains how to do the task in detail. Then we do the experiment itself.</li>
+  
+          <li>At the end, we'll show you a summary of your results and give you the option
+          to identify yourself so we can email you information on the results we obtain.</li>
+        </ol>
+  
+        <p>The total time taken should be about 20 minutes. Please <u>don't</u> use the
+        "back" button on your browser or close the window until you reach the end. Doing
+        this is very likely to break the experiment which means that I will loose my data
+        and you may not get a copy of your results. If something does go wrong, please
+        contact me, and I will do what I can to fix it! When you're ready to begin, click
+        on the "start" button below.</p>
+  
+        <p align="center"><button type="button" id="next_b" onclick="Hash_Check()">Start</button></p>
+  
+        <p>If you have had a go at this before and want to see what has changed from last
+        time look <a href="./doc/changelog.pdf" target="_blank">here</a>, if you would
+        like to see what is on the 'to do list' then you might want to look at <a href=
+        "./doc/todo.pdf" target="_blank">this</a>.  Finally, if Ian has given you a 16
+        character code for a particular experiment, paste it into the box below then click 'Start'.</p>
+        <p align="center"><label for="New_Hash">Pass code: &nbsp;</label><input id="New_Hash" name="New_Hash"></p>
+        <p id="failure_comment"></p>
+      </div>
+    </div>
+  </body>
+<script>
     
 // #################  create timelines & other variables  #################
 
 var timeline = [];  // Create the variable but not run it!
 var is_beginner;
 var demographic_information;
+var Hash_Value;
+var Test_Type;
+var images;
 
-// #################  create introduction screen  #################
+// #################  Function triggered when 'Start' button on introduction screen clicked #################
 
-    var introduction = {
-      type:'external-html',
-      url: "./doc/introduction_page.html",  // relative path (add to app.yaml!)
-      cont_btn: "next_b",
-      };
-    timeline.push(introduction);  // Into the timeline
-
-// #################  create consent screen  #################
-
-    // Function that checks if a subject has given consent to participate.
-    // This stops execution of the rest of the timeline until the agreement checkbox is checked
-    var check_consent = function(elem) {
-        if ($('#consent_checkbox').is(':checked')) {
-            return true;  // Returning true lets us keep going
-        }
-        else {
-            alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
-            return false;  // False keeps us on the form
-        }
-        return false;
-    };
- 
-    // declare the block.
-    var consent = {
-        type:'external-html',
-        url: "./doc/consent_page.html",  // relative path (add to app.yaml!)
-        cont_btn: "start",
-        check_fn: check_consent  // Run the check_consent function
-    };
-    timeline.push(consent);  // Into the timeline
-
-// #################  create demographics screen  #################
-
-    var check_consent = function(elem) {
-        // get the value of a radio button
-        function getRadioButton(name) {
-            var i, radios = document.getElementsByName(name);
-            for (i = 0; i < radios.length; i = i + 1) {
-                if (radios[i].checked) {
-                    return (radios[i].value);
+    function Hash_Check() {
+        Hash_Value = document.getElementById("New_Hash").value;
+        if (Hash_Value == "") {
+            // then we just start with the defaults
+            Test_Type = "0";
+            Create_imagelist();
+        } else {
+            var xmlhttp1 = new XMLHttpRequest();
+            xmlhttp1.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    validateHash(this);
+                }
+            };
+            xmlhttp1.open("GET", "./doc/HashList.xml", true);  // Names the document and path for the file
+            xmlhttp1.send();
+        };
+        // item below is called to start the JsPsych timeline running
+        function validateHash(xml) {
+            var x, y, i, xmlDoc;
+            xmlDoc = xml.responseXML;
+            txt = "";
+            x = xmlDoc.getElementsByTagName("Hash"); // name of the element for checking
+            for (i = 0; i< x.length; i++) {
+                if (x[i].childNodes[0].nodeValue == Hash_Value) {
+                    // so there was a matching hash
+                    document.title = xmlDoc.getElementsByTagName("Name")[i].childNodes[0].nodeValue; //  Let them know that we found their entry
+                    Test_Type = xmlDoc.getElementsByTagName("Task")[i].childNodes[0].nodeValue;
+                    Create_imagelist();
+               } else {
+                    if ((i == (x.length - 1)) && (document.title = "Orienteering")) {
+                        console.log("Present but invalid") //  debugging comment
+                        document.getElementById("failure_comment").innerHTML = "The pass code you entered was invalid.<br>";
+                        // there was no match and we reached the end of the list
+                    } 
                 }
             }
         }
-	    demographic_information = [
-        ("gender:" + getRadioButton("gender")),
-        ("age:" + document.getElementById("age").value),
-        ("language:" + document.getElementById("language").value),
-        ("country:" + document.getElementById("country").value),
-        ("experience:" + getRadioButton("experience")),
-        ("handedness:" + getRadioButton("handedness")),
-        ("handedness:" + getRadioButton("colourblind")),
-        ("mapholding:" + getRadioButton("mapholding"))]
-        is_beginner = getRadioButton("experience")  // for later!
-        // Effectively checks to ensure that we have valid inforamtion in all radio buttons
-        // won't let you move forward unless all radio's have been answered
-    
-        return true // Returning true moves us on the the next item in the timeline
-                    // returning false would prevent progress
-    };
+    }
 
-    var demographics = {
-        type:'external-html',
-        url: "./doc/demographics_page.html",
-        cont_btn: "demographics_done",
-        check_fn: check_consent
+// #################  End function  #################
+
+// #################  create test list  #################
+
+function createTestLists () {
+    var listCWfixate = [];
+    var listCWmap = [];
+    var listCWpic = [];
+    var listCWnumber = 0;
+    var listABfixate = [];
+    var listABmap = [];
+    var listABpic = [];
+    var listABnumber = 0;
+    var listCPfixate = [];
+    var listCPmap = [];
+    var listCPpic = [];
+    var listCPnumber = 0;
+
+    var xmlhttp2 = new XMLHttpRequest();
+        xmlhttp2.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                getItem(this);
+            }
         };
-    timeline.push(demographics);
-    jsPsych.data.addProperties({demographic_information});
+        xmlhttp2.open("GET", "./doc/TaskDescriptors.xml", true);  // Names the document and path for the file
+        xmlhttp2.send();
 
-// #################  a banner screen that shows briefly  #################
+            // item below is called to start the JsPsych timeline running
+            function getItem(xml) {
+                var x, i, xmlDoc;
+                xmlDoc = xml.responseXML;
+                x = xmlDoc.getElementsByTagName("Test"); // name the element for retrieval
+                for (i = 0; i< x.length; i++) {
+                    if (x[i].getAttribute("category") == "CW") {
+                        listCWfixate.push( xmlDoc.getElementsByTagName("Fixate")[i].childNodes[0].nodeValue);
+                        listCWmap.push( xmlDoc.getElementsByTagName("Map")[i].childNodes[0].nodeValue);
+                        listCWpic.push( xmlDoc.getElementsByTagName("Pic")[i].childNodes[0].nodeValue);
+                        listCWnumber += 1;
+                    }
+                }
+                for (i = 0; i< x.length; i++) {
+                    if (x[i].getAttribute("category") == "AB") {
+                        listABfixate.push( xmlDoc.getElementsByTagName("Fixate")[i].childNodes[0].nodeValue);
+                        listABmap.push( xmlDoc.getElementsByTagName("Map")[i].childNodes[0].nodeValue);
+                        listABpic.push( xmlDoc.getElementsByTagName("Pic")[i].childNodes[0].nodeValue);
+                        listABnumber += 1;
+                    }
+                }
+                for (i = 0; i< x.length; i++) {
+                    if (x[i].getAttribute("category") == "CP") {
+                        listCPfixate.push( xmlDoc.getElementsByTagName("Fixate")[i].childNodes[0].nodeValue);
+                        listCPmap.push( xmlDoc.getElementsByTagName("Map")[i].childNodes[0].nodeValue);
+                        listCPpic.push( xmlDoc.getElementsByTagName("Pic")[i].childNodes[0].nodeValue);
+                        listCPnumber += 1;
+                    }
+                }
+            }
+}
+
+
+
+
+
+
+
+// #################  function to create the time line  #################
+
+function Create_Timeline() {
+
+
+    // #################  create consent screen  #################
+
+    if (Test_Type == "0") {  // but only do it if we are running a default test
+
+        // Function that checks if a subject has given consent to participate.
+        // This stops execution of the rest of the timeline until the agreement checkbox is checked
+        var check_consent = function(elem) {
+            if ($('#consent_checkbox').is(':checked')) {
+                return true;  // Returning true lets us keep going
+            }
+            else {
+                alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
+                return false;  // False keeps us on the form
+            }
+            return false;
+        };
+    
+        // declare the block.
+        var consent = {
+            type:'external-html',
+            url: "./doc/consent_page.html",  // relative path (add to app.yaml!)
+            cont_btn: "start",
+            check_fn: check_consent  // Run the check_consent function
+        };
+        timeline.push(consent);  // Into the timeline
+    }    
+
+    // #################  create demographics screen  #################
+
+    if (Test_Type == "0") {  // but only do it if we are running a default test
+
+        var check_consent = function(elem) {
+            // get the value of a radio button
+            function getRadioButton(name) {
+                var i, radios = document.getElementsByName(name);
+                for (i = 0; i < radios.length; i = i + 1) {
+                    if (radios[i].checked) {
+                        return (radios[i].value);
+                    }
+                }
+            }
+            demographic_information = [
+            ("gender:" + getRadioButton("gender")),
+            ("age:" + document.getElementById("age").value),
+            ("language:" + document.getElementById("language").value),
+            ("country:" + document.getElementById("country").value),
+            ("experience:" + getRadioButton("experience")),
+            ("handedness:" + getRadioButton("handedness")),
+            ("handedness:" + getRadioButton("colourblind")),
+            ("mapholding:" + getRadioButton("mapholding"))]
+            is_beginner = getRadioButton("experience")  // for later!
+            // Effectively checks to ensure that we have valid inforamtion in all radio buttons
+            // won't let you move forward unless all radio's have been answered
+        
+            return true // Returning true moves us on the the next item in the timeline
+                        // returning false would prevent progress
+        };
+
+        var demographics = {
+            type:'external-html',
+            url: "./doc/demographics_page.html",
+            cont_btn: "demographics_done",
+            check_fn: check_consent
+            };
+        timeline.push(demographics);
+        jsPsych.data.addProperties({demographic_information});
+    }
+
+    // #################  a banner screen that shows briefly  #################
 
     introduction = {
         type: 'image-keyboard-response',
@@ -103,98 +260,101 @@ var demographic_information;
     };
     timeline.push(introduction);
 
-// #################  create training screens  #################
+    // #################  create training screens  #################
 
-    var map_reading = {  // The user can scroll back and forwards in this list
-        type: 'instructions',
-        pages: [
-            '<img src="img/intro2.jpg"></img>',
-            '<img src="img/intro3.jpg"></img>',
-            '<img src="img/intro4.jpg"></img>',
-            '<img src="img/intro5.jpg"></img>',
-            '<img src="img/intro6.jpg"></img>',
-            '<img src="img/intro7.jpg"></img>',
-            '<img src="img/intro8.jpg"></img>'],
-        show_clickable_nav: true
-    }
-    // Here we only show the introduction stuff if they are a beginner or have 'some experience'
-    var if_node = {
-        timeline: [map_reading],
-        conditional_function: function(){  // Conditional function prevents page displaying if false
-            // get the data from the previous trial, and decide if we will see it
-            if((is_beginner == "never")|(is_beginner == "some")){
-                return true;
-            } else {
-                return false;
+    if (Test_Type == "0") {  // but only do it if we are running a default test
+
+        var map_reading = {  // The user can scroll back and forwards in this list
+            type: 'instructions',
+            pages: [
+                '<img src="img/intro2.jpg"></img>',
+                '<img src="img/intro3.jpg"></img>',
+                '<img src="img/intro4.jpg"></img>',
+                '<img src="img/intro5.jpg"></img>',
+                '<img src="img/intro6.jpg"></img>',
+                '<img src="img/intro7.jpg"></img>',
+                '<img src="img/intro8.jpg"></img>'],
+            show_clickable_nav: true
+        }
+        // Here we only show the introduction stuff if they are a beginner or have 'some experience'
+        var if_node = {
+            timeline: [map_reading],
+            conditional_function: function(){  // Conditional function prevents page displaying if false
+                // get the data from the previous trial, and decide if we will see it
+                if((is_beginner == "never")|(is_beginner == "some")){
+                    return true;
+                } else {
+                    return false;
+                }
             }
         }
+
+    // #################  The test questions  #################
+
+    var options_area = ["I can run / walk on this", "Its uncrossable"];
+    var options_object = ["I can cross this", "I have to go around"];
+    var instructioncorrect = false;
+
+    var instruction_check = {
+            type: "survey-multi-choice",
+            preamble: ["<p align='center'><b>Check your knowledge before you begin the experiment!</b></p><p>Take care answering, you need to get these questions correct before you can proceed to the experiment</p>"],
+            questions: [{prompt: "<b>Q1</b>: Can you cross an area marked like this?    <img src=./img/symBLD.jpg>", options: options_area},
+                        {prompt: "<b>Q2</b>: Can you cross over one of these?    <img src=./img/symWAP.jpg>", options: options_object},
+                        {prompt: "<b>Q3</b>: Is an area marked like this crossable?    <img src=./img/symGRS.jpg>", options: options_area},
+                        {prompt: "<b>Q4</b>: Is an area marked like this crossable?    <img src=./img/symOOB.jpg>", options: options_area},
+                        {prompt: "<b>Q5</b>: Can you cross over one of these?    <img src=./img/symFEP.jpg>", options: options_object},
+                        {prompt: "<b>Q6</b>: Is an area marked like this crossable?    <img src=./img/symCAN.jpg>", options: options_area},
+                        {prompt: "<b>Q7</b>: Can you cross over one of these?    <img src=./img/symWAI.jpg>", options: options_object},
+                        {prompt: "<b>Q8</b>: Is an area marked like this crossable?    <img src=./img/symTRE.jpg>", options: options_area},
+                        {prompt: "<b>Q9</b>: Can you go along one of these?    <img src=./img/symSTA.jpg>", options: options_area},
+                        {prompt: "<b>Q10</b>: Is an area marked like this crossable?    <img src=./img/symCON.jpg>", options: options_area},
+                        {prompt: "<b>Q11</b>: Can you cross over one of these?    <img src=./img/symFEI.jpg>", options: options_object},
+                        {prompt: "<b>Q12</b>: Is an area marked like this crossable?    <img src=./img/symPVE.jpg>", options: options_area},
+                        {prompt: "<b>Q13</b>: Is an area marked like this crossable?    <img src=./img/symGDN.jpg>", options: options_area}],
+            on_finish: function(data) {
+                console.log(data.responses);  // comment out after debugging (use to copy correct response string into line below)
+                if( data.responses == '{"Q0":"Its uncrossable","Q1":"I can cross this","Q2":"I can run / walk on this","Q3":"Its uncrossable","Q4":"I can cross this","Q5":"I can run / walk on this","Q6":"I have to go around","Q7":"I can run / walk on this","Q8":"I can run / walk on this","Q9":"Its uncrossable","Q10":"I have to go around","Q11":"I can run / walk on this","Q12":"Its uncrossable"}') {
+                    instructioncorrect = true;  // questions answered correctly
+                }else{
+                instructioncorrect = false;  // some were wrong
+                is_beginner = "some"  // Here we flip the visibility of the map reading instuction section, so an elete who makes a mistake has to read everything and do the questions again!
+                };   
+            }
+        };          
+
+        var splash_screen = {
+            type: 'html-button-response',
+            stimulus: '<p>Some of your answers were incorrect</p>',
+            choices: ['Click here to review the introduction']
+        };
+        var conditional_instruction = {
+            timeline: [splash_screen],
+            conditional_function: function(data) {
+                return !instructioncorrect // skip if correct
+            }
+        };
+        var conditional_splash = {  // This command adds the training, questionare, and splash screen into a timeline loop
+            timeline: [if_node, instruction_check, conditional_instruction],
+            loop_function: function(data) {
+                return !instructioncorrect // Keep looping until correct
+                }
+        };
+        timeline.push(conditional_splash);   
     }
 
-// #################  The test questions  #################
-
-var options_area = ["I can run / walk on this", "Its uncrossable"];
-var options_object = ["I can cross this", "I have to go around"];
-var instructioncorrect = false;
-
-var instruction_check = {
-        type: "survey-multi-choice",
-        preamble: ["<p align='center'><b>Check your knowledge before you begin the experiment!</b></p><p>Take care answering, you need to get these questions correct before you can proceed to the experiment</p>"],
-        questions: [{prompt: "<b>Q1</b>: Can you cross an area marked like this?    <img src=./img/symBLD.jpg>", options: options_area},
-                    {prompt: "<b>Q2</b>: Can you cross over one of these?    <img src=./img/symWAP.jpg>", options: options_object},
-                    {prompt: "<b>Q3</b>: Is an area marked like this crossable?    <img src=./img/symGRS.jpg>", options: options_area},
-                    {prompt: "<b>Q4</b>: Is an area marked like this crossable?    <img src=./img/symOOB.jpg>", options: options_area},
-                    {prompt: "<b>Q5</b>: Can you cross over one of these?    <img src=./img/symFEP.jpg>", options: options_object},
-                    {prompt: "<b>Q6</b>: Is an area marked like this crossable?    <img src=./img/symCAN.jpg>", options: options_area},
-                    {prompt: "<b>Q7</b>: Can you cross over one of these?    <img src=./img/symWAI.jpg>", options: options_object},
-                    {prompt: "<b>Q8</b>: Is an area marked like this crossable?    <img src=./img/symTRE.jpg>", options: options_area},
-                    {prompt: "<b>Q9</b>: Can you go along one of these?    <img src=./img/symSTA.jpg>", options: options_area},
-                    {prompt: "<b>Q10</b>: Is an area marked like this crossable?    <img src=./img/symCON.jpg>", options: options_area},
-                    {prompt: "<b>Q11</b>: Can you cross over one of these?    <img src=./img/symFEI.jpg>", options: options_object},
-                    {prompt: "<b>Q12</b>: Is an area marked like this crossable?    <img src=./img/symPVE.jpg>", options: options_area},
-                    {prompt: "<b>Q13</b>: Is an area marked like this crossable?    <img src=./img/symGDN.jpg>", options: options_area}],
-        on_finish: function(data) {
-            console.log(data.responses);  // comment out after debugging (use to copy correct response string into line below)
-            if( data.responses == '{"Q0":"Its uncrossable","Q1":"I can cross this","Q2":"I can run / walk on this","Q3":"Its uncrossable","Q4":"I can cross this","Q5":"I can run / walk on this","Q6":"I have to go around","Q7":"I can run / walk on this","Q8":"I can run / walk on this","Q9":"Its uncrossable","Q10":"I have to go around","Q11":"I can run / walk on this","Q12":"Its uncrossable"}') {
-                instructioncorrect = true;  // questions answered correctly
-            }else{
-              instructioncorrect = false;  // some were wrong
-              is_beginner = "some"  // Here we flip the visibility of the map reading instuction section, so an elete who makes a mistake has to read everything and do the questions again!
-            };   
-        }
-    };          
-
-      var splash_screen = {
-          type: 'html-button-response',
-        stimulus: '<p>Some of your answers were incorrect</p>',
-        choices: ['Click here to review the introduction']
-      };
-      var conditional_instruction = {
-          timeline: [splash_screen],
-          conditional_function: function(data) {
-              return !instructioncorrect // skip if correct
-          }
-      };
-      var conditional_splash = {  // This command adds the training, questionare, and splash screen into a timeline loop
-          timeline: [if_node, instruction_check, conditional_instruction],
-          loop_function: function(data) {
-             return !instructioncorrect // Keep looping until correct
-            }
-      };
-    timeline.push(conditional_splash);   
- 
-// #################  create Briefing screens  #################
+    // #################  create Briefing screens  #################
 
     var instructions = {
         type: 'instructions',
         pages: [
             '<img src="img/briefing1.jpg"></img>',
-            '<img src="img/briefing2.jpg"></img>',
-            '<img src="img/briefing3.jpg"></img>'],
+            '<img src="img/CW-briefing2.jpg"></img>',
+            '<img src="img/CW-briefing3.jpg"></img>'],
         show_clickable_nav: true
     };
     timeline.push(instructions);
 
-// #################  create 'Can We?' demo screens  #################
+    // #################  create 'Can We?' demo screens  #################
 
 // Fixation
     var CWdemo = {
@@ -208,7 +368,7 @@ var instruction_check = {
     CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-01-y-map.jpg',
-        trial_duration: 500,
+        trial_duration: 1100,
         choices: jsPsych.NO_KEYS
     };
     timeline.push(CWdemo);
@@ -225,7 +385,7 @@ var instruction_check = {
     CWdemo = {
         type: 'instructions',
         pages: [
-            '<img src="img/briefing4.jpg"></img>'],
+            '<img src="img/CW-briefing4.jpg"></img>'],
         show_clickable_nav: true
     };
     timeline.push(CWdemo);
@@ -235,7 +395,7 @@ var instruction_check = {
 
 
 // Fixation
-    var CWdemo = {
+        CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-02-y-start.jpg',
         trial_duration: 1000,
@@ -246,12 +406,12 @@ var instruction_check = {
     CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-02-y-map.jpg',
-        trial_duration: 500,
+        trial_duration: 1100,
         choices: jsPsych.NO_KEYS
     };
     timeline.push(CWdemo);
 // Picture
-    CWdemo = {
+CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-02-y-pic.jpg',
         choices: ['Y', 'N'],
@@ -259,10 +419,17 @@ var instruction_check = {
         response_ends_trial: true
     };
     timeline.push(CWdemo);
+// Give tham a break
+CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/BreakBetween.jpg',
+        choices: jsPsych.ALL_KEYS,
+    };
+    timeline.push(CWdemo);
 
 
 // Fixation
-    var CWdemo = {
+        CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-09-y-start.jpg',
         trial_duration: 1000,
@@ -273,7 +440,7 @@ var instruction_check = {
     CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-09-y-map.jpg',
-        trial_duration: 500,
+        trial_duration: 1100,
         choices: jsPsych.NO_KEYS
     };
     timeline.push(CWdemo);
@@ -286,10 +453,17 @@ var instruction_check = {
         response_ends_trial: true
     };
     timeline.push(CWdemo);
+// Give tham a break
+CWdemo = {
+        type: 'image-keyboard-response',
+        stimulus: './img/BreakBetween.jpg',
+        choices: jsPsych.ALL_KEYS,
+    };
+    timeline.push(CWdemo);
 
 
 // Fixation
-    var CWdemo = {
+        CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-11-n-start.jpg',
         trial_duration: 1000,
@@ -300,7 +474,7 @@ var instruction_check = {
     CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-11-n-map.jpg',
-        trial_duration: 500,
+        trial_duration: 1100,
         choices: jsPsych.NO_KEYS
     };
     timeline.push(CWdemo);
@@ -313,17 +487,17 @@ var instruction_check = {
         response_ends_trial: true
     };
     timeline.push(CWdemo);
-    introduction = {
+// Give tham a break
+CWdemo = {
         type: 'image-keyboard-response',
-        stimulus: 'img/intro1.jpg',
-        trial_duration: 1000,
-        choices: jsPsych.NO_KEYS
+        stimulus: './img/BreakBetween.jpg',
+        choices: jsPsych.ALL_KEYS,
     };
     timeline.push(CWdemo);
 
 
 // Fixation
-    var CWdemo = {
+        CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-12-n-start.jpg',
         trial_duration: 1000,
@@ -334,7 +508,7 @@ var instruction_check = {
     CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-12-n-map.jpg',
-        trial_duration: 500,
+        trial_duration: 1100,
         choices: jsPsych.NO_KEYS
     };
     timeline.push(CWdemo);
@@ -363,8 +537,17 @@ var instruction_check = {
     };
     timeline.push(debrief);
 
- // #################  run the timeline  #################
+// ################# run the timeline  #################
 
+    run_timeline();
+
+} // the end of timeline creation
+
+// #################  End function  #################
+
+// #################  function to run the timeline  #################
+
+function run_timeline () {
     jsPsych.init ({
         timeline: timeline,  // Oooh yes, now we execute the time line for the experiment
         preload_images: images,
@@ -375,17 +558,19 @@ var instruction_check = {
                     }
                 )
             }
-        });
-// The endExperiment function is called on completion of the timeline
+        });  // Note that the endExperiment function is called on completion of the timeline
+    }
+
+ // #################  this is run when the timeline completes  #################
 
     function endExperiment(dataset,callback) {
         $.post('submit',{"content": dataset});
         setTimeout(callback,1000)
-    }  
-// Posts the dataset into a location where it can be found by the app engine
+    } 
 
-	  /* image list */
-	  var images = [
+    function Create_imagelist () {
+        if (Test_Type == "0") {  // but only do it if we are running a default test
+            images = [	  // image list 
 		  './img/intro1.jpg',
 		  './img/intro2.jpg',
 		  './img/intro3.jpg',
@@ -394,10 +579,11 @@ var instruction_check = {
 		  './img/intro6.jpg',
 		  './img/intro7.jpg',
 		  './img/intro8.jpg',
+		  './img/BreakBetween.jpg',
 		  './img/briefing1.jpg',
-		  './img/briefing2.jpg',
-		  './img/briefing3.jpg',
-		  './img/briefing4.jpg',
+		  './img/CW-briefing2.jpg',
+		  './img/CW-briefing3.jpg',
+		  './img/CW-briefing4.jpg',
 		  './img/CW-01-y-start.jpg',
 		  './img/CW-01-y-map.jpg',
 		  './img/CW-01-y-pic.jpg',
@@ -412,25 +598,35 @@ var instruction_check = {
 		  './img/CW-11-n-pic.jpg',
 		  './img/CW-12-n-start.jpg',
 		  './img/CW-12-n-map.jpg',
-		  './img/CW-12-n-pic.jpg'
-        ];
+		  './img/CW-12-n-pic.jpg'];
+        } else {
+            images = [	  // image list 
+		  './img/intro1.jpg',
+		  './img/briefing1.jpg',
+		  './img/CW-briefing2.jpg',
+		  './img/CW-briefing3.jpg',
+		  './img/CW-briefing4.jpg',
+		  './img/BreakBetween.jpg',
+		  './img/CW-01-y-start.jpg',
+		  './img/CW-01-y-map.jpg',
+		  './img/CW-01-y-pic.jpg',
+		  './img/CW-02-y-start.jpg',
+		  './img/CW-02-y-map.jpg',
+		  './img/CW-02-y-pic.jpg',
+		  './img/CW-09-y-start.jpg',
+		  './img/CW-09-y-map.jpg',
+		  './img/CW-09-y-pic.jpg',
+		  './img/CW-11-n-start.jpg',
+		  './img/CW-11-n-map.jpg',
+		  './img/CW-11-n-pic.jpg',
+		  './img/CW-12-n-start.jpg',
+		  './img/CW-12-n-map.jpg',
+		  './img/CW-12-n-pic.jpg'];
+        }
+        Create_Timeline();
+    }
 
-        
-//// generate a random subject ID with 15 characters
-//var subject_id = jsPsych.randomization.randomID(15);
-
-//// pick a random condition for the subject at the start of the experiment
-//var condition_assignment = jsPsych.randomization.sampleWithoutReplacement(['conditionA', 'conditionB', 'conditionC'], 1)[0];
-//// record the condition assignment in the jsPsych data
-//// this adds a property called 'subject' and a property called 'condition' to every trial
-//    jsPsych.data.addProperties({
-//    subject: subject_id,
-//    condition: condition_assignment
-//    });
-
-
-
-
+// Posts the dataset into a location where it can be found by the application in the browser
 
 
 
