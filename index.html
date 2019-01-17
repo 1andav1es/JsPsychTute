@@ -5,7 +5,6 @@
     <script src="./js/jquery.min.js"></script>
     <script src="./js/jspsych.js"></script>
     <script src="./js/Cookies.src.js"></script>
-    <script src="./js/q.js"></script>
     <script src="./js/plugins/jspsych-html-keyboard-response.js"></script>
     <script src="./js/plugins/jspsych-html-button-response.js"></script>
     <script src="./js/plugins/jspsych-survey-multi-choice.js"></script>
@@ -17,10 +16,9 @@
   <body>
 
     <!-- #################  introduction screen  #################-->
-
     <div id="introduction">
       <div class="start" style=
-      "text-align:left; border:0px solid; padding:10px; width:800px; float:right; font-size:90%">
+      "text-align:left; border:0px solid; padding:10px; width:800px; font-size:90%">
       <p align="center"><b>"Reading Sprint Maps"</b></p><br />
         This is a short psychological study investigating how people read sprint
         orienteering maps. It involves the following steps:<br />
@@ -60,6 +58,36 @@
         <p id="failure_comment"></p>
       </div>
     </div>
+    <!-- ####################### Consent ####################### -->
+	<div class="consent" style="display:none; width:1000px">
+    <!-- Text box for the splash page -->
+        <div class="consent" style="text-align:left; border:0px solid; padding:10px;  width:800px; font-size:90%">
+            <p align="center"><b>PARTICIPANT INFORMATION STATEMENT</b><br>Understanding How Sprint Orienteers Make Decisions </br></p>
+            <p><b>Purpose of study</b><br>We hope to better understand the processes behind route decision making in a sprint orienteering environment.  This is mostly to satisfy my curiosity but may find use understanding issues regarding the readability of maps for colour blind orienteers.</br></p>
+            <p><b>Participant selection</b><br>Participants in this study are drawn from the orienteering community.</br></p>
+            <p><b>Confidentiality and Disclosure of Information</b><br>This software does not require you to identify yourself unless you choose to do so.  For participants who do identify themselves, I will update them on the progress of this investigation.  All information gathered by this study will be stored securely, information identifying individual participants will be destroyed after 2 years.  If you give us your permission by clicking on the &quot;I agree&quot; button below, we may publish the results in academic journals or discuss them at scientific conferences. In any publication, information will be provided in such a way that individuals cannot be identified.</br></p>
+            <p><b>Description of study and risks</b><br>If you decide to participate, we will present you with some judgement problems in which you need to use the (possibly incomplete) information to make judgements (or guesses) about the truth of different alternatives.  No discomfort excepting boredom or possibly a desire to cast aside electronic devices and go running are expected from participation in this study. No risks are reasonably expected as a result of your participation in this study. We cannot guarantee or promise that you will receive any benefit from this study.</br></p>
+            <p><b>Inquiries</b><br>If you have any questions or concerns following your participation, Ian Davies (+61 4 0006 0971, <a href="mailto:idav@netspace.net.au" target="_blank">Email</a>. idav@netspace.net.au) will be happy to address them.<p>
+            <p>Please keep a copy of this information sheet (you can download the pdf <a href="./doc/info.pdf" target="_blank">here</a>).  At least note my email address!  There is some additional information on the experiment which may interest you if you are a nerd, psychologist, or just generally curious <a href="./doc/tech.pdf" target="_blank">here</a>!</p>
+            <p align="center"><b>PARTICIPANT CONSENT</b></p>By continuing, you are making a decision whether or not to participate.  Clicking the button below indicates that, having read the information provided on the participant information sheet, you have decided to participate.</p></br>
+      <p align="center">
+        <input type="checkbox" id="consent_checkbox" onclick="createTestLists()"/>I agree to take part in this study. </p>
+      <p align="center">
+      <button type="button" id="consent_start" onclick="Start_Experiment()">Start Experiment</button></p> 
+      </div>
+    </div>
+    <!-- ####################### Confirmation ####################### -->
+	<div class="id_confirmation" style="display:none; width:1000px">
+        <!-- Text box for the splash page -->
+        <div class="id_confirmation" style="text-align:center; border:0px solid; padding:10px;  width:800px; font-size:90%">
+            <b>CONFIRMATION</b></p>
+            <br></br>
+            <p id="confirmation_checkbox_title"></p>
+            </p><input type="checkbox" id="confirmation_checkbox" onclick="createTestLists()"></p>
+            <button type="button" id="confirmation_start" onclick="Start_Experiment()">Start Experiment</button></p>
+        </div>
+    </div>
+                
   </body>
 <script>
     
@@ -73,25 +101,38 @@ var Test_Type;
 var images;
 var listCWfixate = [];
 var listCWmap = [];
+var listCWdwell = [];
 var listCWpic = [];
 var listCWnumber = 0;
 var listABfixate = [];
 var listABmap = [];
+var listABdwell = [];
 var listABpic = [];
 var listABnumber = 0;
 var listCPfixate = [];
 var listCPmap = [];
+var listCPdwell = [];
 var listCPpic = [];
 var listCPnumber = 0;
 
-// #################  Function triggered when 'Start' button on introduction screen clicked #################
 
+function Start_Experiment () {
+    Create_imagelist();
+    Create_Timeline();
+    run_timeline();
+};
+
+
+// #################  Function triggered when 'Start' button on introduction screen clicked #################
+// returns participant_name, test_type and sets the next screen to either consent or id_confirmation
     function Hash_Check() {
         Hash_Value = document.getElementById("New_Hash").value;
         if (Hash_Value == "") {
             // then we just start with the defaults
             Test_Type = "0";
-            createTestLists();
+            setDisplay('start', 'none');
+            setDisplay('consent', '');
+            console.log("no hash given"); //  debugging comment
         } else {
             var xmlhttp1 = new XMLHttpRequest();
             xmlhttp1.onreadystatechange = function() {
@@ -105,30 +146,40 @@ var listCPnumber = 0;
         // item below is called to start the JsPsych timeline running
         function validateHash(xml) {
             var x, y, i, xmlDoc;
+            var participant_name = ""
             xmlDoc = xml.responseXML;
             txt = "";
             x = xmlDoc.getElementsByTagName("Hash"); // name of the element for checking
             for (i = 0; i< x.length; i++) {
                 if (x[i].childNodes[0].nodeValue == Hash_Value) {
                     // so there was a matching hash
-                    document.title = xmlDoc.getElementsByTagName("Name")[i].childNodes[0].nodeValue; //  Let them know that we found their entry
+                    participant_name = xmlDoc.getElementsByTagName("Name")[i].childNodes[0].nodeValue; //  Let them know that we found their entry
                     Test_Type = xmlDoc.getElementsByTagName("Task")[i].childNodes[0].nodeValue;
-                    createTestLists();
-               } else {
-                    if ((i == (x.length - 1)) && (document.title = "Orienteering")) {
-                        console.log("Present but invalid"); //  debugging comment
-                        document.getElementById("failure_comment").innerHTML = "The pass code you entered was invalid.<br>";
-                        // there was no match and we reached the end of the list
-                    } 
-                }
-            }
+                    setDisplay('start', 'none');
+                    setDisplay('id_confirmation', '');
+                    console.log("Present and valid"); //  debugging comment
+               }
+            };
+            if (participant_name == "") {
+                console.log("Present but invalid"); //  debugging comment
+                document.getElementById("failure_comment").innerHTML = "The pass code you entered was invalid.<br>";
+                // there was no match and we reached the end of the list
+            };
+            document.title = participant_name; 
+            document.getElementById("confirmation_checkbox_title").innerHTML = "I am " + participant_name;
         }
     }
-
+    // function to change the display property of a set of objects
+    function setDisplay(theClass, theValue) {
+        var i, classElements = document.getElementsByClassName(theClass);
+        for (i = 0; i < classElements.length; i = i + 1) {
+            classElements[i].style.display = theValue;
+        }
+    }
 // #################  End function  #################
 
 // #################  create test list  #################
-
+// populates variables with lists of images used to build the experiment timeline
 function createTestLists () {
 
     var xmlhttp2 = new XMLHttpRequest();
@@ -170,43 +221,13 @@ function createTestLists () {
                     }
                 }
             }
+            // note : no dependancey on Test_Type yet...
             console.log("create test lists completed");
-            Create_imagelist();
 }
-
+// #################  End function  #################
 
 // #################  function to create the time line  #################
-
 function Create_Timeline() {
-
-
-    // #################  create consent screen  #################
-
-    if (Test_Type == "0") {  // but only do it if we are running a default test
-
-        // Function that checks if a subject has given consent to participate.
-        // This stops execution of the rest of the timeline until the agreement checkbox is checked
-        var check_consent = function(elem) {
-            if ($('#consent_checkbox').is(':checked')) {
-                return true;  // Returning true lets us keep going
-            }
-            else {
-                alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
-                return false;  // False keeps us on the form
-            }
-            return false;
-        };
-    
-        // declare the block.
-        var consent = {
-            type:'external-html',
-            url: "./doc/consent_page.html",  // relative path (add to app.yaml!)
-            cont_btn: "start",
-            check_fn: check_consent  // Run the check_consent function
-        };
-        timeline.push(consent);  // Into the timeline
-    }    
-
     // #################  create demographics screen  #################
 
     if (Test_Type == "0") {  // but only do it if we are running a default test
@@ -233,11 +254,9 @@ function Create_Timeline() {
             is_beginner = getRadioButton("experience")  // for later!
             // Effectively checks to ensure that we have valid inforamtion in all radio buttons
             // won't let you move forward unless all radio's have been answered
-        
             return true // Returning true moves us on the the next item in the timeline
                         // returning false would prevent progress
         };
-
         var demographics = {
             type:'external-html',
             url: "./doc/demographics_page.html",
@@ -388,9 +407,8 @@ function Create_Timeline() {
     };
     timeline.push(CWdemo);
 
-    // @@@@@@@@@@@@@@@@ boilerplate Can We? test @@@@@@@@@@@@@@@@
-    // @@@@@@@@@@@@@@@@                          @@@@@@@@@@@@@@@@
-
+    // #################  create 'Can We?' demo screens  #################
+    // @@@@@@@@@@@@@@@@ 
 
     console.log("build timeline started" + parseInt(listCWnumber, 10));
     var i;
@@ -429,18 +447,9 @@ function Create_Timeline() {
             timeline.push(CWdemo);
             console.log("BT loop" + parseInt(i, 10));
     };
-
-
-
-
-
     timeline.pop(); // because the last rest screen is not needed
 
-
-    // @@@@@@@@@@@@@@@@                          @@@@@@@@@@@@@@@@
-    // @@@@@@@@@@@@@@@@     end boilerplate      @@@@@@@@@@@@@@@@
-
-
+    // @@@@@@@@@@@@@@@@ 
 
     // #################  create debrief screen  #################
     var debrief = 
@@ -453,17 +462,12 @@ function Create_Timeline() {
     timeline.push(debrief);
     // ################# run the timeline  #################
 
-    run_timeline();
 
 
-    };
-
-
-
+};
 // #################  End function  #################
 
 // #################  function to run the timeline  #################
-
 function run_timeline () {
     jsPsych.init ({
         timeline: timeline,  // Oooh yes, now we execute the time line for the experiment
@@ -478,14 +482,16 @@ function run_timeline () {
         });  // Note that the endExperiment function is called on completion of the timeline
     }
 
- // #################  this is run when the timeline completes  #################
+// #################  this is run when the timeline completes  #################
 
     function endExperiment(dataset,callback) {
         $.post('submit',{"content": dataset});
         setTimeout(callback,1000)
     } 
+// #################  End function  #################
 
-    function Create_imagelist () {
+// #################  function to create the Image lists that are loaded at run_timeline  #################
+function Create_imagelist () {
         if (Test_Type == "0") {  // but only do it if we are running a default test
             images = [	  // image list 
 		  './img/intro1.jpg',
@@ -540,10 +546,9 @@ function run_timeline () {
 		  './img/CW-12-n-map.jpg',
 		  './img/CW-12-n-pic.jpg'];
         }
-        Create_Timeline();
+    // Posts the dataset into a location where it can be found by the application in the browser
     }
-
-// Posts the dataset into a location where it can be found by the application in the browser
+// #################  End function  #################
 
 
 

@@ -1,39 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Task_Description>
-    <Test category = "CW" Test_Type = "0" sect = "1" correct = "89" viewTime = "1000">
+    <Test category = "CW" Test_Type = "0" sect = "1">
         <Fixate>CW-01-y-start.jpg</Fixate>
         <Map>CW-01-y-map.jpg</Map>
+	<ViewTime>1000</ViewTime>
         <Pic>CW-01-y-pic.jpg</Pic>
+	<Correct>89</Correct>
    </Test>
-    <Test category = "CW" Test_Type = "0" sect = "2" correct = "89" viewTime = "1000">
+    <Test category = "CW" Test_Type = "0" sect = "2">
        <Fixate>CW-02-y-start.jpg</Fixate>
         <Map>CW-02-y-map.jpg</Map>
+	<ViewTime>1000</ViewTime>
         <Pic>CW-02-y-pic.jpg</Pic>
+	<Correct>89</Correct>
     </Test>
-    <Test category = "CW" Test_Type = "0" sect = "2" correct = "89" viewTime = "1000">
+    <Test category = "CW" Test_Type = "0" sect = "2">
         <Fixate>CW-09-y-start.jpg</Fixate>
         <Map>CW-09-y-map.jpg</Map>
+	<ViewTime>1000</ViewTime>
         <Pic>CW-09-y-pic.jpg</Pic>
+	<Correct>89</Correct>
     </Test>
-    <Test category = "CW" Test_Type = "0" sect = "2" correct = "78" viewTime = "1000">
+    <Test category = "CW" Test_Type = "0" sect = "2">
         <Fixate>CW-11-n-start.jpg</Fixate>
         <Map>CW-11-n-map.jpg</Map>
+	<ViewTime>1000</ViewTime>
         <Pic>CW-11-n-pic.jpg</Pic>
+	<Correct>78</Correct>
     </Test>
-    <Test category = "CW" Test_Type = "0" sect = "2" correct = "78" viewTime = "1000">
+    <Test category = "CW" Test_Type = "0" sect = "2">
         <Fixate>CW-12-n-start.jpg</Fixate>
         <Map>CW-12-n-map.jpg</Map>
+	<ViewTime>1000</ViewTime>
         <Pic>CW-12-n-pic.jpg</Pic>
+	<Correct>78</Correct>
     </Test>
-    <Test category = "AB" Test_Type = "0" sect = "1" correct = "" viewTime = "700">
+    <Test category = "AB" Test_Type = "0" sect = "1">
         <Fixate>AB-07-y-start.jpg</Fixate>
         <Map>AB-07-map.jpg</Map>
+	<ViewTime>700</ViewTime>
         <Pic>AB-07-pic.jpg</Pic>
+	<Correct> </Correct>
     </Test>
-    <Test category = "AB" Test_Type = "0" sect = "2" correct = "74" viewTime = "500">
+    <Test category = "AB" Test_Type = "0" sect = "2">
         <Fixate>AB-06-start.jpg</Fixate>
         <Map>AB-06-map-a.jpg</Map>
+	<ViewTime>500</ViewTime>
         <Pic>AB-06-pic.jpg</Pic>
+	<Correct>74</Correct>
     </Test>
 
 </Task_Description>
