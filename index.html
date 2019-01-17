@@ -5,6 +5,7 @@
     <script src="./js/jquery.min.js"></script>
     <script src="./js/jspsych.js"></script>
     <script src="./js/Cookies.src.js"></script>
+    <script src="./js/q.js"></script>
     <script src="./js/plugins/jspsych-html-keyboard-response.js"></script>
     <script src="./js/plugins/jspsych-html-button-response.js"></script>
     <script src="./js/plugins/jspsych-survey-multi-choice.js"></script>
@@ -70,6 +71,18 @@ var demographic_information;
 var Hash_Value;
 var Test_Type;
 var images;
+var listCWfixate = [];
+var listCWmap = [];
+var listCWpic = [];
+var listCWnumber = 0;
+var listABfixate = [];
+var listABmap = [];
+var listABpic = [];
+var listABnumber = 0;
+var listCPfixate = [];
+var listCPmap = [];
+var listCPpic = [];
+var listCPnumber = 0;
 
 // #################  Function triggered when 'Start' button on introduction screen clicked #################
 
@@ -78,7 +91,7 @@ var images;
         if (Hash_Value == "") {
             // then we just start with the defaults
             Test_Type = "0";
-            Create_imagelist();
+            createTestLists();
         } else {
             var xmlhttp1 = new XMLHttpRequest();
             xmlhttp1.onreadystatechange = function() {
@@ -100,10 +113,10 @@ var images;
                     // so there was a matching hash
                     document.title = xmlDoc.getElementsByTagName("Name")[i].childNodes[0].nodeValue; //  Let them know that we found their entry
                     Test_Type = xmlDoc.getElementsByTagName("Task")[i].childNodes[0].nodeValue;
-                    Create_imagelist();
+                    createTestLists();
                } else {
                     if ((i == (x.length - 1)) && (document.title = "Orienteering")) {
-                        console.log("Present but invalid") //  debugging comment
+                        console.log("Present but invalid"); //  debugging comment
                         document.getElementById("failure_comment").innerHTML = "The pass code you entered was invalid.<br>";
                         // there was no match and we reached the end of the list
                     } 
@@ -117,18 +130,6 @@ var images;
 // #################  create test list  #################
 
 function createTestLists () {
-    var listCWfixate = [];
-    var listCWmap = [];
-    var listCWpic = [];
-    var listCWnumber = 0;
-    var listABfixate = [];
-    var listABmap = [];
-    var listABpic = [];
-    var listABnumber = 0;
-    var listCPfixate = [];
-    var listCPmap = [];
-    var listCPpic = [];
-    var listCPnumber = 0;
 
     var xmlhttp2 = new XMLHttpRequest();
         xmlhttp2.onreadystatechange = function() {
@@ -169,12 +170,9 @@ function createTestLists () {
                     }
                 }
             }
+            console.log("create test lists completed");
+            Create_imagelist();
 }
-
-
-
-
-
 
 
 // #################  function to create the time line  #################
@@ -217,7 +215,7 @@ function Create_Timeline() {
             // get the value of a radio button
             function getRadioButton(name) {
                 var i, radios = document.getElementsByName(name);
-                for (i = 0; i < radios.length; i = i + 1) {
+                for (i = 0; i < radios.length; i++) {
                     if (radios[i].checked) {
                         return (radios[i].value);
                     }
@@ -248,7 +246,7 @@ function Create_Timeline() {
             };
         timeline.push(demographics);
         jsPsych.data.addProperties({demographic_information});
-    }
+    }  // ending the section that only gets displayed if the test_type is 0
 
     // #################  a banner screen that shows briefly  #################
 
@@ -340,7 +338,7 @@ function Create_Timeline() {
                 }
         };
         timeline.push(conditional_splash);   
-    }
+    }  // here endeth test_type 0 exclusion (all the introductory training and the test)
 
     // #################  create Briefing screens  #################
 
@@ -356,7 +354,7 @@ function Create_Timeline() {
 
     // #################  create 'Can We?' demo screens  #################
 
-// Fixation
+    // Fixation
     var CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-01-y-start.jpg',
@@ -364,7 +362,7 @@ function Create_Timeline() {
         choices: jsPsych.NO_KEYS
     };
     timeline.push(CWdemo);
-// Map
+    // Map
     CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-01-y-map.jpg',
@@ -372,7 +370,7 @@ function Create_Timeline() {
         choices: jsPsych.NO_KEYS
     };
     timeline.push(CWdemo);
-// Picture
+    // Picture
     CWdemo = {
         type: 'image-keyboard-response',
         stimulus: './img/CW-01-y-pic.jpg',
@@ -381,7 +379,7 @@ function Create_Timeline() {
         response_ends_trial: true
     };
     timeline.push(CWdemo);
-// Notice that the 'real' block is about to start
+    // Notice that the 'real' block is about to start
     CWdemo = {
         type: 'instructions',
         pages: [
@@ -390,144 +388,61 @@ function Create_Timeline() {
     };
     timeline.push(CWdemo);
 
-// @@@@@@@@@@@@@@@@ boilerplate Can We? test @@@@@@@@@@@@@@@@
-// @@@@@@@@@@@@@@@@                          @@@@@@@@@@@@@@@@
+    // @@@@@@@@@@@@@@@@ boilerplate Can We? test @@@@@@@@@@@@@@@@
+    // @@@@@@@@@@@@@@@@                          @@@@@@@@@@@@@@@@
 
 
-// Fixation
-        CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-02-y-start.jpg',
-        trial_duration: 1000,
-        choices: jsPsych.NO_KEYS
+    console.log("build timeline started" + parseInt(listCWnumber, 10));
+    var i;
+    for (i = 1; i < listCWnumber; i++) {
+        // Fixation
+            CWdemo = {
+                type: 'image-keyboard-response',
+                stimulus: "./img/" + listCWfixate[i],
+                trial_duration: 1000,
+                choices: jsPsych.NO_KEYS
+            };
+            timeline.push(CWdemo);
+        // Map
+            CWdemo = {
+                type: 'image-keyboard-response',
+                stimulus: "./img/" + listCWmap[i],
+                trial_duration: 1100,
+                choices: jsPsych.NO_KEYS
+            };
+            timeline.push(CWdemo);
+        // Picture
+            CWdemo = {
+                type: 'image-keyboard-response',
+                stimulus: "./img/" + listCWpic[i],
+                choices: ['Y', 'N'],
+                prompt: "<p>If you can get to the control, press 'Y'. If you can't, press 'N'",
+                response_ends_trial: true
+            };
+            timeline.push(CWdemo);
+        // Give tham a break
+            CWdemo = {
+                type: 'image-keyboard-response',
+                stimulus: './img/BreakBetween.jpg',
+                choices: jsPsych.ALL_KEYS,
+            };
+            timeline.push(CWdemo);
+            console.log("BT loop" + parseInt(i, 10));
     };
-    timeline.push(CWdemo);
-// Map
-    CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-02-y-map.jpg',
-        trial_duration: 1100,
-        choices: jsPsych.NO_KEYS
-    };
-    timeline.push(CWdemo);
-// Picture
-CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-02-y-pic.jpg',
-        choices: ['Y', 'N'],
-        prompt: "<p>If you can get to the control, press 'Y'. If you can't, press 'N'",
-        response_ends_trial: true
-    };
-    timeline.push(CWdemo);
-// Give tham a break
-CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/BreakBetween.jpg',
-        choices: jsPsych.ALL_KEYS,
-    };
-    timeline.push(CWdemo);
 
 
-// Fixation
-        CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-09-y-start.jpg',
-        trial_duration: 1000,
-        choices: jsPsych.NO_KEYS
-    };
-    timeline.push(CWdemo);
-// Map
-    CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-09-y-map.jpg',
-        trial_duration: 1100,
-        choices: jsPsych.NO_KEYS
-    };
-    timeline.push(CWdemo);
-// Picture
-    CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-09-y-pic.jpg',
-        choices: ['Y', 'N'],
-        prompt: "<p>If you can get to the control, press 'Y'. If you can't, press 'N'",
-        response_ends_trial: true
-    };
-    timeline.push(CWdemo);
-// Give tham a break
-CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/BreakBetween.jpg',
-        choices: jsPsych.ALL_KEYS,
-    };
-    timeline.push(CWdemo);
 
 
-// Fixation
-        CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-11-n-start.jpg',
-        trial_duration: 1000,
-        choices: jsPsych.NO_KEYS
-    };
-    timeline.push(CWdemo);
-// Map
-    CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-11-n-map.jpg',
-        trial_duration: 1100,
-        choices: jsPsych.NO_KEYS
-    };
-    timeline.push(CWdemo);
-// Picture
-    CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-11-n-pic.jpg',
-        choices: ['Y', 'N'],
-        prompt: "<p>If you can get to the control, press 'Y'. If you can't, press 'N'",
-        response_ends_trial: true
-    };
-    timeline.push(CWdemo);
-// Give tham a break
-CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/BreakBetween.jpg',
-        choices: jsPsych.ALL_KEYS,
-    };
-    timeline.push(CWdemo);
+
+    timeline.pop(); // because the last rest screen is not needed
 
 
-// Fixation
-        CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-12-n-start.jpg',
-        trial_duration: 1000,
-        choices: jsPsych.NO_KEYS
-    };
-    timeline.push(CWdemo);
-// Map
-    CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-12-n-map.jpg',
-        trial_duration: 1100,
-        choices: jsPsych.NO_KEYS
-    };
-    timeline.push(CWdemo);
-// Picture
-    CWdemo = {
-        type: 'image-keyboard-response',
-        stimulus: './img/CW-12-n-pic.jpg',
-        choices: ['Y', 'N'],
-        prompt: "<p>If you can get to the control, press 'Y'. If you can't, press 'N'",
-        response_ends_trial: true
-    };
-    timeline.push(CWdemo);
+    // @@@@@@@@@@@@@@@@                          @@@@@@@@@@@@@@@@
+    // @@@@@@@@@@@@@@@@     end boilerplate      @@@@@@@@@@@@@@@@
 
 
-// @@@@@@@@@@@@@@@@                          @@@@@@@@@@@@@@@@
-// @@@@@@@@@@@@@@@@     end boilerplate      @@@@@@@@@@@@@@@@
 
-
-// #################  create debrief screen  #################
+    // #################  create debrief screen  #################
     var debrief = 
     {
         type: 'html-keyboard-response',
@@ -536,12 +451,14 @@ CWdemo = {
         prompt: "<p>Pressing the space bar will save the data.</p>"
     };
     timeline.push(debrief);
-
-// ################# run the timeline  #################
+    // ################# run the timeline  #################
 
     run_timeline();
 
-} // the end of timeline creation
+
+    };
+
+
 
 // #################  End function  #################
 
