@@ -133,11 +133,14 @@ function getRadioButton(name) {
         }
     }
 }
+// function ensure the confirmation radiobutton is clicked before it will allow you to proceed
 function validate_consent () {
     if (listCWnumber > 0) {
         Create_imagelist();
         Create_Timeline();
         run_timeline();
+    } else {
+        alert("Please confirm before attempting to start the experiment")
     }
 }
 // #################  End function  #################
@@ -178,7 +181,7 @@ function validate_consent () {
                     Test_Type = xmlDoc.getElementsByTagName("Task")[i].childNodes[0].nodeValue;
                     setDisplay('start', 'none');
                     setDisplay('id_confirmation', '');
-                    console.log("Present and valid"); //  debugging comment
+                    console.log("Present and valid.  Test Type is :" + Test_Type); //  debugging comment
                }
             };
             if (participant_name == "") {
@@ -211,27 +214,29 @@ function createTestLists () {
                 xmlDoc = xml.responseXML;
                 x = xmlDoc.getElementsByTagName("Test"); // name the element for retrieval
                 for (i = 0; i< x.length; i++) {
-                    if (x[i].getAttribute("category") == "CW") {
+                    if ((x[i].getAttribute("category") == "CW") && (x[i].getAttribute("Test_Type") == Test_Type)) {
                         listCWfixate.push( xmlDoc.getElementsByTagName("Fixate")[i].childNodes[0].nodeValue);
                         listCWmap.push( xmlDoc.getElementsByTagName("Map")[i].childNodes[0].nodeValue);
                         listCWpic.push( xmlDoc.getElementsByTagName("Pic")[i].childNodes[0].nodeValue);
+                        listCWdwell.push(parseInt(xmlDoc.getElementsByTagName("ViewTime")[i].childNodes[0].nodeValue));
                         listCWnumber += 1;
+                        console.log("CW :" + i + " length :" + x.length)
                     }
-                }
-                for (i = 0; i< x.length; i++) {
-                    if (x[i].getAttribute("category") == "AB") {
+                    if ((x[i].getAttribute("category") == "AB") && (x[i].getAttribute("Test_Type") == Test_Type)) {
                         listABfixate.push( xmlDoc.getElementsByTagName("Fixate")[i].childNodes[0].nodeValue);
                         listABmap.push( xmlDoc.getElementsByTagName("Map")[i].childNodes[0].nodeValue);
                         listABpic.push( xmlDoc.getElementsByTagName("Pic")[i].childNodes[0].nodeValue);
+                        listABdwell.push(parseInt( xmlDoc.getElementsByTagName("ViewTime")[i].childNodes[0].nodeValue));
                         listABnumber += 1;
+                        console.log("AB :" + i + " length :" + x.length)
                     }
-                }
-                for (i = 0; i< x.length; i++) {
-                    if (x[i].getAttribute("category") == "CP") {
+                    if ((x[i].getAttribute("category") == "CP") && (x[i].getAttribute("Test_Type") == Test_Type)) {
                         listCPfixate.push( xmlDoc.getElementsByTagName("Fixate")[i].childNodes[0].nodeValue);
                         listCPmap.push( xmlDoc.getElementsByTagName("Map")[i].childNodes[0].nodeValue);
                         listCPpic.push( xmlDoc.getElementsByTagName("Pic")[i].childNodes[0].nodeValue);
+                        listCPdwell.push(parseInt( xmlDoc.getElementsByTagName("ViewTime")[i].childNodes[0].nodeValue));
                         listCPnumber += 1;
+                        console.log("CP :" + i + " length :" + x.length)
                     }
                 }
             }
@@ -245,7 +250,7 @@ function Create_Timeline() {
     // #################  create demographics screen  #################
 
     if (Test_Type == "0") {  // but only do it if we are running a default test
-
+        var demog1, demog2, demog3;
         var check_consent = function(elem) {
             // get the value of a radio button
             function getRadioButton(name) {
@@ -256,20 +261,25 @@ function Create_Timeline() {
                     }
                 }
             }
+            demog1 = getRadioButton("gender");
+            demog2 = getRadioButton("handedness");
+            is_beginner = getRadioButton("experience");  // for later!
+            demog3 = getRadioButton("mapholding");
             demographic_information = [
-            ("gender:" + getRadioButton("gender")),
+            ("gender:" + demog1),
             ("age:" + document.getElementById("age").value),
             ("language:" + document.getElementById("language").value),
             ("country:" + document.getElementById("country").value),
-            ("experience:" + getRadioButton("experience")),
-            ("handedness:" + getRadioButton("handedness")),
-            ("handedness:" + getRadioButton("colourblind")),
-            ("mapholding:" + getRadioButton("mapholding"))]
-            is_beginner = getRadioButton("experience")  // for later!
-            // Effectively checks to ensure that we have valid inforamtion in all radio buttons
-            // won't let you move forward unless all radio's have been answered
-            return true // Returning true moves us on the the next item in the timeline
-                        // returning false would prevent progress
+            ("experience:" + is_beginner),
+            ("handedness:" + demog2),
+            ("mapholding:" + demog3)]
+            if ((demog1 === undefined) || (demog2 === undefined) || (is_beginner === undefined) || (demog3 === undefined)) {
+                console.log("Incomplete demographics");
+                return false // returning false prevents progress
+            } else {
+                return true // Returning true moves us on the the next item in the timeline
+            };
+                    
         };
         var demographics = {
             type:'external-html',
@@ -386,11 +396,10 @@ function Create_Timeline() {
     timeline.push(instructions);
 
     // #################  create 'Can We?' demo screens  #################
-
     // Fixation
     var CWdemo = {
         type: 'image-keyboard-response',
-        stimulus: './img/CW-01-y-start.jpg',
+        stimulus: './img/' + listCWfixate[0],
         trial_duration: 1000,
         choices: jsPsych.NO_KEYS
     };
@@ -398,15 +407,15 @@ function Create_Timeline() {
     // Map
     CWdemo = {
         type: 'image-keyboard-response',
-        stimulus: './img/CW-01-y-map.jpg',
-        trial_duration: 1100,
+        stimulus: "./img/" + listCWmap[0],
+        trial_duration: listCWdwell[0],
         choices: jsPsych.NO_KEYS
     };
     timeline.push(CWdemo);
     // Picture
     CWdemo = {
         type: 'image-keyboard-response',
-        stimulus: './img/CW-01-y-pic.jpg',
+        stimulus: "./img/" + listCWpic[0],
         choices: ['Y', 'N'],
         prompt: "<p>If you can get to the control, press 'Y'. If you can't, press 'N'",
         response_ends_trial: true
@@ -420,11 +429,9 @@ function Create_Timeline() {
         show_clickable_nav: true
     };
     timeline.push(CWdemo);
-
-    // #################  create 'Can We?' demo screens  #################
+    // #################  create 'Can We?' N x trial screens  #################
     // @@@@@@@@@@@@@@@@ 
-
-    console.log("build timeline started" + parseInt(listCWnumber, 10));
+    console.log("CW build timeline started " + parseInt(listCWnumber, 10));
     var i;
     for (i = 1; i < listCWnumber; i++) {
         // Fixation
@@ -439,7 +446,7 @@ function Create_Timeline() {
             CWdemo = {
                 type: 'image-keyboard-response',
                 stimulus: "./img/" + listCWmap[i],
-                trial_duration: 1100,
+                trial_duration: listCWdwell[i],
                 choices: jsPsych.NO_KEYS
             };
             timeline.push(CWdemo);
@@ -459,11 +466,101 @@ function Create_Timeline() {
                 choices: jsPsych.ALL_KEYS,
             };
             timeline.push(CWdemo);
-            console.log("BT loop" + parseInt(i, 10));
+            console.log("CW loop " + parseInt(i, 10));
     };
     timeline.pop(); // because the last rest screen is not needed
-
     // @@@@@@@@@@@@@@@@ 
+    // #################  create 'AB' demo screens  #################
+if (listABnumber > 0) {  // if needed
+    // #################  create Briefing screens  #################
+
+    var instructions = {
+        type: 'instructions',
+        pages: [
+            '<img src="img/AB-briefing2.jpg"></img>',
+            '<img src="img/AB-briefing3.js uppg"></img>'],
+        show_clickable_nav: true
+    };
+    timeline.push(instructions);
+// Fixation
+        var CWdemo = {
+            type: 'image-keyboard-response',
+            stimulus: './img/' + listABfixate[0],
+            trial_duration: 1000,
+            choices: jsPsych.NO_KEYS
+        };
+        timeline.push(CWdemo);
+        // Map
+        CWdemo = {
+            type: 'image-keyboard-response',
+            stimulus: "./img/" + listABmap[0],
+            trial_duration: listABdwell[0],
+            choices: jsPsych.NO_KEYS
+        };
+        timeline.push(CWdemo);
+        // Picture
+        CWdemo = {
+            type: 'image-keyboard-response',
+            stimulus: "./img/" + listABpic[0],
+            choices: ['F', 'J'],
+            prompt: "<p>If the best choice is to go left, press 'F', or if it's best to go right, press 'J'.",
+            response_ends_trial: true
+        };
+        timeline.push(CWdemo);
+        // Notice that the 'real' block is about to start
+        CWdemo = {
+            type: 'instructions',
+            pages: [
+                '<img src="img/AB-briefing4.jpg"></img>'],
+            show_clickable_nav: true
+        };
+        timeline.push(CWdemo);
+        // #################  create 'AB' N x trial screens  #################
+        // @@@@@@@@@@@@@@@@ 
+        console.log("AB build timeline started " + parseInt(listABnumber, 10));
+        var i;
+        for (i = 1; i < listABnumber; i++) {
+            // Fixation
+                CWdemo = {
+                    type: 'image-keyboard-response',
+                    stimulus: "./img/" + listABfixate[i],
+                    trial_duration: 1000,
+                    choices: jsPsych.NO_KEYS
+                };
+                timeline.push(CWdemo);
+            // Map
+                CWdemo = {
+                    type: 'image-keyboard-response',
+                    stimulus: "./img/" + listABmap[i],
+                    trial_duration: listABdwell[i],
+                    choices: jsPsych.NO_KEYS
+                };
+                timeline.push(CWdemo);
+            // Picture
+                CWdemo = {
+                    type: 'image-keyboard-response',
+                    stimulus: "./img/" + listABpic[i],
+                    choices: ['F', 'J'],
+                    prompt: "<p>If the best choice is to go left, press 'F', or if it's best to go right, press 'J'.",
+                    response_ends_trial: true
+                };
+                timeline.push(CWdemo);
+            // Give tham a break
+                CWdemo = {
+                    type: 'image-keyboard-response',
+                    stimulus: './img/BreakBetween.jpg',
+                    choices: jsPsych.ALL_KEYS,
+                };
+                timeline.push(CWdemo);
+                console.log("AB loop" + parseInt(i, 10));
+        };
+        timeline.pop(); // because the last rest screen is not needed
+        // @@@@@@@@@@@@@@@@ 
+}
+
+
+
+
 
     // #################  create debrief screen  #################
     var debrief = 
@@ -520,22 +617,13 @@ function Create_imagelist () {
 		  './img/briefing1.jpg',
 		  './img/CW-briefing2.jpg',
 		  './img/CW-briefing3.jpg',
-		  './img/CW-briefing4.jpg',
-		  './img/CW-01-y-start.jpg',
-		  './img/CW-01-y-map.jpg',
-		  './img/CW-01-y-pic.jpg',
-		  './img/CW-02-y-start.jpg',
-		  './img/CW-02-y-map.jpg',
-		  './img/CW-02-y-pic.jpg',
-		  './img/CW-09-y-start.jpg',
-		  './img/CW-09-y-map.jpg',
-		  './img/CW-09-y-pic.jpg',
-		  './img/CW-11-n-start.jpg',
-		  './img/CW-11-n-map.jpg',
-		  './img/CW-11-n-pic.jpg',
-		  './img/CW-12-n-start.jpg',
-		  './img/CW-12-n-map.jpg',
-		  './img/CW-12-n-pic.jpg'];
+		  './img/CW-briefing4.jpg'];
+            var i;
+            for (i = 0; i < listCWnumber; i++) {
+                images.push( "./img/" + listCWfixate[i])
+                images.push( "./img/" + listCWmap[i])
+                images.push( "./img/" + listCWpic[i])
+            }
         } else {
             images = [	  // image list 
 		  './img/intro1.jpg',
@@ -543,22 +631,24 @@ function Create_imagelist () {
 		  './img/CW-briefing2.jpg',
 		  './img/CW-briefing3.jpg',
 		  './img/CW-briefing4.jpg',
-		  './img/BreakBetween.jpg',
-		  './img/CW-01-y-start.jpg',
-		  './img/CW-01-y-map.jpg',
-		  './img/CW-01-y-pic.jpg',
-		  './img/CW-02-y-start.jpg',
-		  './img/CW-02-y-map.jpg',
-		  './img/CW-02-y-pic.jpg',
-		  './img/CW-09-y-start.jpg',
-		  './img/CW-09-y-map.jpg',
-		  './img/CW-09-y-pic.jpg',
-		  './img/CW-11-n-start.jpg',
-		  './img/CW-11-n-map.jpg',
-		  './img/CW-11-n-pic.jpg',
-		  './img/CW-12-n-start.jpg',
-		  './img/CW-12-n-map.jpg',
-		  './img/CW-12-n-pic.jpg'];
+		  './img/BreakBetween.jpg']
+          var i;
+            for (i = 0; i < listCWnumber; i++) {
+                images.push( "./img/" + listCWfixate[i]);
+                images.push( "./img/" + listCWmap[i]);
+                images.push( "./img/" + listCWpic[i]);
+            }
+            if (listABnumber > 0) {
+                images.push('./img/AB-briefing2.jpg');
+                images.push('./img/AB-briefing3.jpg');
+                images.push('./img/AB-briefing4.jpg');
+            }
+            var i;
+            for (i = 0; i < listABnumber; i++) {
+                images.push( "./img/" + listABfixate[i]);
+                images.push( "./img/" + listABmap[i]);
+                images.push( "./img/" + listABpic[i]);
+            }
         }
     // Posts the dataset into a location where it can be found by the application in the browser
     }
